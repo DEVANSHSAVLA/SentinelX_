@@ -1,0 +1,26 @@
+name: sentinelx_mobile
+description: "SentinelX V2.0 Flutter Mobile Application for Android and iOS"
+publish_to: 'none'
+version: 2.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  flutter_secure_storage: ^9.0.0
+  local_auth: ^2.1.8
+  sqflite: ^2.3.0
+  path: ^1.9.0
+  provider: ^6.1.1
+  flutter_local_notifications: ^17.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

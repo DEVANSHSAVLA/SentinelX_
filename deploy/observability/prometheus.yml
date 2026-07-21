@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "sentinelx-gateway"
+    static_configs:
+      - targets: ["api-gateway:8000"]
+
+  - job_name: "sentinelx-scam-detection"
+    static_configs:
+      - targets: ["scam-detection:8001"]
+
+  - job_name: "sentinelx-fraud-graph"
+    static_configs:
+      - targets: ["fraud-graph:8002"]
+
+  - job_name: "sentinelx-citizen-shield"
+    static_configs:
+      - targets: ["citizen-shield:8003"]
+
+  - job_name: "sentinelx-threat-fusion"
+    static_configs:
+      - targets: ["threat-fusion:8004"]
+
+  - job_name: "sentinelx-evidence-generator"
+    static_configs:
+      - targets: ["evidence-generator:8005"]
+
+  - job_name: "sentinelx-counterfeit-detection"
+    static_configs:
+      - targets: ["counterfeit-detection:8006"]

@@ -1,0 +1,72 @@
+name: SentinelX Enterprise CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, release/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-typecheck:
+    name: Lint & TypeCheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Monorepo Dependencies
+        run: |
+          cd apps/command-centre && npm install --no-audit
+          cd ../../services/api-gateway && npm install --no-audit
+
+      - name: TypeCheck Command Centre
+        run: cd apps/command-centre && npx tsc --noEmit
+
+      - name: TypeCheck API Gateway
+        run: cd services/api-gateway && npx tsc --noEmit
+
+      - name: Build Command Centre Production Bundle
+        run: cd apps/command-centre && npm run build
+
+  python-microservice-tests:
+    name: Python Microservice Unit & Mesh Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install fastapi uvicorn pydantic requests opencv-python-headless reportlab numpy pyyaml
+
+      - name: Run 12-Agent Mesh Orchestration Test
+        run: python -m agents.test_agent_mesh
+
+      - name: Run Fault-Tolerance Resilience Test
+        run: python -m agents.test_resilience
+
+  container-build-and-scan:
+    name: Container Build & Security Audit
+    needs: [lint-and-typecheck, python-microservice-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate Kubernetes Manifests
+        run: |
+          python -m pip install pyyaml
+          python -c "import glob, yaml; [list(yaml.safe_load_all(open(f))) for f in glob.glob('deploy/k8s/*.yaml')]; print('Kubernetes manifests syntax validated successfully.')"

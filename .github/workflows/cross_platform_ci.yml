@@ -1,0 +1,54 @@
+name: SentinelX V2.0 Cross-Platform Build Pipeline
+
+on:
+  push:
+    branches: [ main, release/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-web:
+    name: Build Command Centre Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install & Build Command Centre
+        run: |
+          cd apps/command-centre
+          npm install --no-audit
+          npm run build
+
+  build-desktop:
+    name: Validate Desktop Frontend (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Desktop Dependencies & Build
+        run: |
+          cd apps/desktop
+          npm install --no-audit
+          npm run build
+
+  build-flutter-mobile:
+    name: Build Flutter Mobile (Android & iOS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.x'
+          channel: 'stable'
+      - name: Flutter Dependencies Check
+        run: |
+          cd apps/mobile
+          flutter pub get

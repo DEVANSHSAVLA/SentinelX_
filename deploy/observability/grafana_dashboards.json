@@ -1,0 +1,49 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "API Gateway Request Latency (P95)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "P95 Latency" }
+      ]
+    },
+    {
+      "title": "Microservice Error Rate (% 5xx)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "sum(rate(http_requests_total{status=~\"5..\"}[5m])) / sum(rate(http_requests_total[5m])) * 100", "legendFormat": "Error Rate %" }
+      ]
+    },
+    {
+      "title": "Kafka Consumer Lag by Topic",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "sum(kafka_consumergroup_lag) by (topic)", "legendFormat": "{{topic}}" }
+      ]
+    },
+    {
+      "title": "12-Agent Execution Duration (P90)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        { "expr": "histogram_quantile(0.90, sum(rate(agent_execution_duration_seconds_bucket[5m])) by (le, agent_name))", "legendFormat": "{{agent_name}}" }
+      ]
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["sentinelx", "production", "observability"],
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "SentinelX National AI Command Platform — Executive Operations Dashboard"
+}

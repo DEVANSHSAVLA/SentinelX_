@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinelx-api-gateway
+  namespace: sentinelx-system
+  labels:
+    app: sentinelx-api-gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sentinelx-api-gateway
+  template:
+    metadata:
+      labels:
+        app: sentinelx-api-gateway
+    spec:
+      containers:
+        - name: gateway
+          image: sentinelx/api-gateway:v7.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "8000"
+          livenessProbe:
+            httpGet:
+              path: /health/liveness
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/readiness
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinelx-api-gateway-svc
+  namespace: sentinelx-system
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: sentinelx-api-gateway
