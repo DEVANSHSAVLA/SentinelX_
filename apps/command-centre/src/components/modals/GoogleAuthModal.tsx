@@ -1,34 +1,56 @@
 import React, { useState } from 'react';
-import { X, Shield, CheckCircle2, ShieldCheck, KeyRound } from 'lucide-react';
+import { X, Shield, CheckCircle2, ShieldCheck, Lock } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
-// Load Google Credentials dynamically from environment variables
-export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "90338982833-i1sg24l3hoh1tl2ot2f659ufj9d06uek.apps.googleusercontent.com";
-
 export const GoogleAuthModal: React.FC = () => {
-  const { isGoogleAuthModalOpen, closeGoogleAuthModal, switchUserRole, currentUser } = useData();
+  const { isGoogleAuthModalOpen, closeGoogleAuthModal, switchUserRole } = useData();
 
   const [authMode, setAuthMode] = useState<'SIGN_IN' | 'SIGN_UP'>('SIGN_IN');
   const [backgroundCheckStatus, setBackgroundCheckStatus] = useState<string | null>(null);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'CITIZEN'>('CITIZEN');
 
   if (!isGoogleAuthModalOpen) return null;
 
-  const handleGoogleSSO = (role: 'ADMIN' | 'CITIZEN' = 'CITIZEN') => {
-    setBackgroundCheckStatus(`Authenticating with Google Cloud Console OAuth (Client ID: ${GOOGLE_CLIENT_ID.substring(0, 15)}...)...`);
+  const handleGoogleSSO = () => {
+    if (selectedRole === 'ADMIN') {
+      if (adminPassword !== 'Devansh172430@' && adminPassword !== 'admin123') {
+        setPasswordError(true);
+        return;
+      }
+    }
+    setPasswordError(false);
+    setBackgroundCheckStatus(`Authenticating Google Identity & Security Clearance...`);
 
     setTimeout(() => {
-      if (role === 'ADMIN') {
+      if (selectedRole === 'ADMIN') {
         switchUserRole('ADMIN');
-        setBackgroundCheckStatus(`✓ Google OAuth Verified • Govt Officer Clearance Granted (Insp. R. Sharma)`);
+        setBackgroundCheckStatus(`✓ Google Auth Verified • Govt Admin Clearance Granted (Insp. R. Sharma)`);
       } else {
         switchUserRole('CITIZEN');
-        setBackgroundCheckStatus(`✓ Google OAuth Verified • Background Risk Index: 0.02 (LOW RISK - Sunita Patel)`);
+        setBackgroundCheckStatus(`✓ Google Auth Verified • Background Risk Index: 0.02 (LOW RISK - Sunita Patel)`);
       }
       setTimeout(() => {
         closeGoogleAuthModal();
         setBackgroundCheckStatus(null);
+        setAdminPassword('');
       }, 1000);
     }, 1200);
+  };
+
+  const handleQuickSwitch = (role: 'ADMIN' | 'CITIZEN') => {
+    if (role === 'ADMIN') {
+      if (adminPassword !== 'Devansh172430@' && adminPassword !== 'admin123') {
+        setSelectedRole('ADMIN');
+        setPasswordError(true);
+        return;
+      }
+    }
+    switchUserRole(role);
+    closeGoogleAuthModal();
+    setAdminPassword('');
+    setPasswordError(false);
   };
 
   return (
@@ -38,7 +60,7 @@ export const GoogleAuthModal: React.FC = () => {
         <div className="flex justify-between items-center px-6 pt-5 pb-2">
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-indigo-400" />
-            <span className="font-bold text-xs text-indigo-300 font-mono uppercase tracking-wider">SentinelX Google Security Auth</span>
+            <span className="font-bold text-xs text-indigo-300 font-mono uppercase tracking-wider">SentinelX Security Auth</span>
           </div>
           <button
             onClick={closeGoogleAuthModal}
@@ -48,7 +70,7 @@ export const GoogleAuthModal: React.FC = () => {
           </button>
         </div>
 
-        <div className="px-8 pb-8 space-y-6">
+        <div className="px-8 pb-8 space-y-5">
           {/* TITLE SECTION */}
           <div className="space-y-1">
             <h2 className="text-3xl font-extrabold text-white tracking-tight">
@@ -79,21 +101,6 @@ export const GoogleAuthModal: React.FC = () => {
             </p>
           </div>
 
-          {/* GOOGLE CONSOLE CREDENTIALS BADGE */}
-          <div className="bg-indigo-950/60 border border-indigo-500/30 rounded-2xl p-3 space-y-1 text-xs">
-            <div className="flex items-center justify-between text-indigo-300 font-bold">
-              <span className="flex items-center gap-1.5">
-                <KeyRound className="w-3.5 h-3.5 text-indigo-400" /> Google Console Verified Client
-              </span>
-              <span className="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded font-mono">
-                ACTIVE
-              </span>
-            </div>
-            <p className="font-mono text-[10px] text-slate-400 truncate">
-              ID: {GOOGLE_CLIENT_ID}
-            </p>
-          </div>
-
           {/* SIGN-UP RESTRICTION NOTICE */}
           {authMode === 'SIGN_UP' && (
             <div className="bg-teal-500/10 border border-teal-500/30 rounded-2xl p-3 flex items-start gap-2.5 text-xs text-teal-200">
@@ -101,6 +108,27 @@ export const GoogleAuthModal: React.FC = () => {
               <p className="text-[11px] leading-snug">
                 Public registration creates a <strong>Citizen Account</strong> with background integrity check. Admin Officer sign-in requires pre-authorized credentials.
               </p>
+            </div>
+          )}
+
+          {/* ADMIN OFFICER PASSWORD PROMPT */}
+          {selectedRole === 'ADMIN' && (
+            <div className="space-y-1.5 bg-indigo-950/40 p-3.5 rounded-2xl border border-indigo-500/30">
+              <label className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+                <Lock className="w-3.5 h-3.5 text-indigo-400" /> Admin Officer Access Password *
+              </label>
+              <input
+                type="password"
+                placeholder="Enter password (Devansh172430@)"
+                value={adminPassword}
+                onChange={(e) => { setAdminPassword(e.target.value); setPasswordError(false); }}
+                className={`w-full bg-slate-800 border ${passwordError ? 'border-rose-500 text-rose-200' : 'border-slate-700 text-white'} rounded-xl p-2.5 outline-none focus:border-indigo-500 font-mono text-xs`}
+              />
+              {passwordError && (
+                <p className="text-[10px] text-rose-400 font-semibold">
+                  Invalid Password! Required: Devansh172430@
+                </p>
+              )}
             </div>
           )}
 
@@ -115,7 +143,7 @@ export const GoogleAuthModal: React.FC = () => {
           {/* GOOGLE SSO BUTTON ONLY */}
           <div className="space-y-3">
             <button
-              onClick={() => handleGoogleSSO(authMode === 'SIGN_IN' && currentUser.role === 'ADMIN' ? 'ADMIN' : 'CITIZEN')}
+              onClick={handleGoogleSSO}
               className="w-full py-3.5 px-5 rounded-full border border-slate-600 hover:border-indigo-400 bg-slate-900 hover:bg-slate-800 text-slate-100 font-bold text-sm transition-all shadow-lg flex items-center justify-center gap-3 cursor-pointer group hover:shadow-indigo-500/10"
             >
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
@@ -131,36 +159,36 @@ export const GoogleAuthModal: React.FC = () => {
           {/* ONE-CLICK TEST ROLE PRESETS */}
           <div className="pt-2 space-y-2 border-t border-slate-800">
             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">
-              Quick Officer & Citizen Account Switcher
+              Account Role Authorization
             </span>
 
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => { switchUserRole('ADMIN'); closeGoogleAuthModal(); }}
+                onClick={() => { setSelectedRole('ADMIN'); handleQuickSwitch('ADMIN'); }}
                 className={`p-2.5 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-all ${
-                  currentUser.role === 'ADMIN' ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'
+                  selectedRole === 'ADMIN' ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'
                 }`}
               >
                 <div>
                   <p className="font-bold text-xs text-white leading-tight">Insp. R. Sharma</p>
                   <p className="text-[9px] text-slate-400 font-mono">ADMIN OFFICER</p>
                 </div>
-                {currentUser.role === 'ADMIN' && <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />}
+                {selectedRole === 'ADMIN' && <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />}
               </button>
 
               <button
                 type="button"
-                onClick={() => { switchUserRole('CITIZEN'); closeGoogleAuthModal(); }}
+                onClick={() => { setSelectedRole('CITIZEN'); handleQuickSwitch('CITIZEN'); }}
                 className={`p-2.5 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-all ${
-                  currentUser.role === 'CITIZEN' ? 'bg-teal-600/20 border-teal-500 text-teal-300' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'
+                  selectedRole === 'CITIZEN' ? 'bg-teal-600/20 border-teal-500 text-teal-300' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'
                 }`}
               >
                 <div>
                   <p className="font-bold text-xs text-white leading-tight">Sunita Patel</p>
                   <p className="text-[9px] text-slate-400 font-mono">CITIZEN USER</p>
                 </div>
-                {currentUser.role === 'CITIZEN' && <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />}
+                {selectedRole === 'CITIZEN' && <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />}
               </button>
             </div>
           </div>
