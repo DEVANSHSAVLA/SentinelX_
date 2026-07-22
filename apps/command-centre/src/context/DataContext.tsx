@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNotification } from './NotificationContext';
 
 export interface UserProfile {
@@ -133,53 +133,92 @@ export const CITIZEN_USER: UserProfile = {
   avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80'
 };
 
+const DEFAULT_EVIDENCE_FILES: EvidenceFile[] = [
+  {
+    id: 'FILE-001',
+    fileName: 'cbi_digital_arrest_call_recording.wav',
+    fileType: 'doc',
+    fileSize: '4.2 MB',
+    uploadDate: new Date().toISOString().split('T')[0],
+    fileUrl: '#',
+    caseId: 'REP-2026-001'
+  },
+  {
+    id: 'FILE-002',
+    fileName: 'fake_notice_police_letterhead.pdf',
+    fileType: 'pdf',
+    fileSize: '1.8 MB',
+    uploadDate: new Date().toISOString().split('T')[0],
+    fileUrl: '#',
+    caseId: 'REP-2026-001'
+  },
+  {
+    id: 'FILE-003',
+    fileName: 'counterfeit_500_note_watermark.jpg',
+    fileType: 'image',
+    fileSize: '2.5 MB',
+    uploadDate: new Date().toISOString().split('T')[0],
+    fileUrl: '#',
+    caseId: 'REP-2026-003'
+  }
+];
+
+const DEFAULT_CASES: CaseItem[] = [
+  {
+    id: 'REP-2026-001',
+    reporter: 'Sunita Patel (Citizen)',
+    reporterEmail: 'sunita.patel@gmail.com',
+    phone: '+919876543210',
+    crimeCategory: 'Fake Calls Frauds',
+    detail: 'Received fake police digital arrest call demanding money via UPI.',
+    location: 'Mumbai',
+    date: new Date().toISOString().split('T')[0],
+    status: 'INVESTIGATING',
+    priority: 'CRITICAL',
+    coords: CITY_COORDINATES['mumbai']
+  },
+  {
+    id: 'REP-2026-002',
+    reporter: 'Ramesh Kumar',
+    reporterEmail: 'ramesh.kumar@gmail.com',
+    phone: '+919811223344',
+    crimeCategory: 'Net Banking/ATM Frauds',
+    detail: 'Unauthorized transaction of Rs 50,000 from SBI account.',
+    location: 'Delhi',
+    date: new Date().toISOString().split('T')[0],
+    status: 'OPEN',
+    priority: 'HIGH',
+    coords: CITY_COORDINATES['delhi']
+  },
+  {
+    id: 'REP-2026-003',
+    reporter: 'Ananya Roy',
+    reporterEmail: 'ananya.roy@gmail.com',
+    phone: '+919711224455',
+    crimeCategory: 'Counterfeit Currency Note',
+    detail: 'Received fake 500 note from local merchant.',
+    location: 'Kolkata',
+    date: new Date().toISOString().split('T')[0],
+    status: 'CLOSED',
+    priority: 'MEDIUM',
+    coords: CITY_COORDINATES['kolkata']
+  }
+];
+
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { addToast } = useNotification();
 
-  const [currentUser, setCurrentUser] = useState<UserProfile>(ADMIN_USER);
+  const [currentUser, setCurrentUser] = useState<UserProfile>(() => {
+    const saved = localStorage.getItem('sentinelx_current_user');
+    return saved ? JSON.parse(saved) : ADMIN_USER;
+  });
+
   const [isGoogleAuthModalOpen, setIsGoogleAuthModalOpen] = useState(false);
 
-  const [cases, setCases] = useState<CaseItem[]>([
-    {
-      id: 'REP-2026-001',
-      reporter: 'Sunita Patel (Citizen)',
-      reporterEmail: 'sunita.patel@gmail.com',
-      phone: '+919876543210',
-      crimeCategory: 'Fake Calls Frauds',
-      detail: 'Received fake police digital arrest call demanding money via UPI.',
-      location: 'Mumbai',
-      date: new Date().toISOString().split('T')[0],
-      status: 'INVESTIGATING',
-      priority: 'CRITICAL',
-      coords: CITY_COORDINATES['mumbai']
-    },
-    {
-      id: 'REP-2026-002',
-      reporter: 'Ramesh Kumar',
-      reporterEmail: 'ramesh.kumar@gmail.com',
-      phone: '+919811223344',
-      crimeCategory: 'Net Banking/ATM Frauds',
-      detail: 'Unauthorized transaction of Rs 50,000 from SBI account.',
-      location: 'Delhi',
-      date: new Date().toISOString().split('T')[0],
-      status: 'OPEN',
-      priority: 'HIGH',
-      coords: CITY_COORDINATES['delhi']
-    },
-    {
-      id: 'REP-2026-003',
-      reporter: 'Ananya Roy',
-      reporterEmail: 'ananya.roy@gmail.com',
-      phone: '+919711224455',
-      crimeCategory: 'Counterfeit Currency Note',
-      detail: 'Received fake 500 note from local merchant.',
-      location: 'Kolkata',
-      date: new Date().toISOString().split('T')[0],
-      status: 'CLOSED',
-      priority: 'MEDIUM',
-      coords: CITY_COORDINATES['kolkata']
-    }
-  ]);
+  const [cases, setCases] = useState<CaseItem[]>(() => {
+    const saved = localStorage.getItem('sentinelx_cases');
+    return saved ? JSON.parse(saved) : DEFAULT_CASES;
+  });
 
   const [sessions, setSessions] = useState<SessionItem[]>([
     {
@@ -217,35 +256,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   ]);
 
-  const [evidenceFiles, setEvidenceFiles] = useState<EvidenceFile[]>([
-    {
-      id: 'FILE-001',
-      fileName: 'cbi_digital_arrest_call_recording.wav',
-      fileType: 'doc',
-      fileSize: '4.2 MB',
-      uploadDate: new Date().toISOString().split('T')[0],
-      fileUrl: '#',
-      caseId: 'REP-2026-001'
-    },
-    {
-      id: 'FILE-002',
-      fileName: 'fake_notice_police_letterhead.pdf',
-      fileType: 'pdf',
-      fileSize: '1.8 MB',
-      uploadDate: new Date().toISOString().split('T')[0],
-      fileUrl: '#',
-      caseId: 'REP-2026-001'
-    },
-    {
-      id: 'FILE-003',
-      fileName: 'counterfeit_500_note_watermark.jpg',
-      fileType: 'image',
-      fileSize: '2.5 MB',
-      uploadDate: new Date().toISOString().split('T')[0],
-      fileUrl: '#',
-      caseId: 'REP-2026-003'
-    }
-  ]);
+  const [evidenceFiles, setEvidenceFiles] = useState<EvidenceFile[]>(() => {
+    const saved = localStorage.getItem('sentinelx_evidence_files');
+    return saved ? JSON.parse(saved) : DEFAULT_EVIDENCE_FILES;
+  });
 
   const [isHashUnlocked, setIsHashUnlocked] = useState<boolean>(false);
   const [activeSessionId, setActiveSessionId] = useState<string>("SESS-8921");
@@ -254,12 +268,61 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currencyScanResult, setCurrencyScanResult] = useState<CurrencyScanResult | null>(null);
   const [isCurrencyScanning, setIsCurrencyScanning] = useState(false);
 
+  // REAL-TIME BROADCAST & LOCALSTORAGE SYNC ACROSS WEB, DESKTOP, AND MOBILE
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'sentinelx_evidence_files' && e.newValue) {
+        setEvidenceFiles(JSON.parse(e.newValue));
+      }
+      if (e.key === 'sentinelx_cases' && e.newValue) {
+        setCases(JSON.parse(e.newValue));
+      }
+      if (e.key === 'sentinelx_current_user' && e.newValue) {
+        setCurrentUser(JSON.parse(e.newValue));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof BroadcastChannel !== 'undefined') {
+      channel = new BroadcastChannel('sentinelx_global_sync');
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'SYNC_EVIDENCE' && event.data?.payload) {
+          setEvidenceFiles(event.data.payload);
+        }
+        if (event.data?.type === 'SYNC_CASES' && event.data?.payload) {
+          setCases(event.data.payload);
+        }
+        if (event.data?.type === 'SYNC_USER' && event.data?.payload) {
+          setCurrentUser(event.data.payload);
+        }
+      };
+    }
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      if (channel) channel.close();
+    };
+  }, []);
+
+  const broadcastChange = (type: string, payload: any) => {
+    if (typeof BroadcastChannel !== 'undefined') {
+      const channel = new BroadcastChannel('sentinelx_global_sync');
+      channel.postMessage({ type, payload });
+      channel.close();
+    }
+  };
+
   const openGoogleAuthModal = () => setIsGoogleAuthModalOpen(true);
   const closeGoogleAuthModal = () => setIsGoogleAuthModalOpen(false);
 
   const switchUserRole = (role: 'ADMIN' | 'CITIZEN') => {
     const newUser = role === 'ADMIN' ? ADMIN_USER : CITIZEN_USER;
     setCurrentUser(newUser);
+    localStorage.setItem('sentinelx_current_user', JSON.stringify(newUser));
+    broadcastChange('SYNC_USER', newUser);
+
     addToast({
       type: 'info',
       title: `Logged in as ${newUser.role}`,
@@ -276,6 +339,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       avatar: avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'
     };
     setCurrentUser(newUser);
+    localStorage.setItem('sentinelx_current_user', JSON.stringify(newUser));
+    broadcastChange('SYNC_USER', newUser);
+
     addToast({
       type: 'success',
       title: 'Google Auth Successful',
@@ -286,6 +352,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setCurrentUser(CITIZEN_USER);
+    localStorage.setItem('sentinelx_current_user', JSON.stringify(CITIZEN_USER));
+    broadcastChange('SYNC_USER', CITIZEN_USER);
+
     addToast({
       type: 'info',
       title: 'Logged Out',
@@ -320,7 +389,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       coords
     };
 
-    setCases(prev => [newCase, ...prev]);
+    setCases(prev => {
+      const updated = [newCase, ...prev];
+      localStorage.setItem('sentinelx_cases', JSON.stringify(updated));
+      broadcastChange('SYNC_CASES', updated);
+      return updated;
+    });
 
     addToast({
       type: newCase.priority === 'CRITICAL' ? 'critical' : 'success',
@@ -332,7 +406,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateCaseStatus = (id: string, newStatus: CaseItem['status']) => {
-    setCases(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
+    setCases(prev => {
+      const updated = prev.map(c => c.id === id ? { ...c, status: newStatus } : c);
+      localStorage.setItem('sentinelx_cases', JSON.stringify(updated));
+      broadcastChange('SYNC_CASES', updated);
+      return updated;
+    });
     addToast({
       type: newStatus === 'CLOSED' ? 'info' : 'success',
       title: 'Case Status Updated',
@@ -355,11 +434,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: `FILE-00${evidenceFiles.length + 1}`,
       uploadDate: new Date().toISOString().split('T')[0]
     };
-    setEvidenceFiles(prev => [newFile, ...prev]);
+    setEvidenceFiles(prev => {
+      const updated = [newFile, ...prev];
+      localStorage.setItem('sentinelx_evidence_files', JSON.stringify(updated));
+      broadcastChange('SYNC_EVIDENCE', updated);
+      return updated;
+    });
     addToast({
       type: 'success',
-      title: 'Evidence File Attached',
-      message: `Attached ${newFile.fileName} to Digital Evidence Package Vault!`
+      title: 'Evidence File Attached & Synced',
+      message: `Attached ${newFile.fileName}! Synchronized across Web, Desktop, and Mobile Apps!`
     });
   };
 
