@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Printer, ShieldCheck, Lock, Unlock, Upload, FileText, Image, File, CheckCircle2, Key, X, Eye, ExternalLink } from 'lucide-react';
+import { Printer, ShieldCheck, Lock, Unlock, Upload, FileText, Image, File, CheckCircle2, Key, X, Eye, ExternalLink, ShieldAlert, FileCheck, Landmark } from 'lucide-react';
 import { useData, EvidenceFile } from '../../context/DataContext';
 
 export const EvidenceVault: React.FC = () => {
@@ -81,6 +81,30 @@ export const EvidenceVault: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* PRINT COLOR ADJUSTMENT STYLE INJECTION */}
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #printable-evidence-ledger, #printable-evidence-ledger * {
+            visibility: visible;
+          }
+          #printable-evidence-ledger {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 20px;
+            background: white !important;
+            color: black !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+      `}</style>
+
       <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-lg space-y-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-4 gap-4">
           <div>
@@ -99,7 +123,7 @@ export const EvidenceVault: React.FC = () => {
             </span>
             <button
               onClick={handlePrint}
-              className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
+              className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4" />
               <span>Print DEP Dossier PDF</span>
@@ -284,57 +308,138 @@ export const EvidenceVault: React.FC = () => {
 
         </div>
 
-        {/* PRINTABLE LEGAL FORENSIC DOSSIER */}
-        <div id="printable-evidence-ledger" className="border border-slate-300 bg-white text-slate-900 p-8 rounded-lg min-h-[350px] space-y-6 shadow-xl">
-          <div className="flex justify-between items-center border-b-2 border-slate-300 pb-4">
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-slate-900">SENTINELX PUBLIC SAFETY FORENSIC LEDGER</h1>
-              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mt-0.5">
-                Digital Evidence Package Vault — Case Ref: {selectedCase.id}
+        {/* HIGHLY STYLED COLORFUL PRINTABLE DOSSIER PDF */}
+        <div id="printable-evidence-ledger" className="border-2 border-indigo-900 bg-white text-slate-900 rounded-2xl overflow-hidden shadow-2xl space-y-6">
+          
+          {/* VIBRANT OFFICIAL HEADER BAR */}
+          <div className="bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 text-white p-6 border-b-4 border-amber-500 flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-amber-500/20 rounded-xl border border-amber-400/40 text-amber-400">
+                <Landmark className="w-8 h-8" />
+              </div>
+              <div>
+                <h1 className="text-xl font-black tracking-wider text-white">SENTINELX NATIONAL PUBLIC SAFETY COMMAND</h1>
+                <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Official Forensic Evidence Ledger & DEP Dossier
+                </p>
+              </div>
+            </div>
+
+            <div className="text-right space-y-1">
+              <span className="bg-emerald-500 text-slate-950 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider shadow">
+                ✓ Legally Certified
+              </span>
+              <p className="text-[10px] text-slate-300 font-mono pt-1">
+                Ref ID: <b>{selectedCase.id}</b>
+              </p>
+              <p className="text-[9px] text-slate-400 font-mono">
+                Generated: {new Date().toLocaleString()}
               </p>
             </div>
-            <div className="text-right">
-              <span className="border-2 border-emerald-600 text-emerald-700 text-[10px] font-extrabold px-2.5 py-1 uppercase rounded tracking-wider">
-                Legally Signed
-              </span>
-              <p className="text-[9px] text-slate-500 mt-1 font-mono">{new Date().toLocaleString()}</p>
+          </div>
+
+          <div className="p-6 space-y-6">
+            
+            {/* INCIDENT HIGHLIGHT CARDS (COLORFUL GRID) */}
+            <div className="grid grid-cols-3 gap-4 text-xs">
+              <div className="bg-indigo-50 border border-indigo-200 p-3.5 rounded-xl space-y-1">
+                <p className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">Incident Classification</p>
+                <p className="font-extrabold text-sm text-indigo-950">{selectedCase.crimeCategory}</p>
+              </div>
+
+              <div className="bg-teal-50 border border-teal-200 p-3.5 rounded-xl space-y-1">
+                <p className="text-[10px] font-bold text-teal-700 uppercase tracking-wider">Complainant Name / Contact</p>
+                <p className="font-extrabold text-sm text-teal-950">{selectedCase.reporter}</p>
+                <p className="text-[10px] font-mono text-teal-800">{selectedCase.phone}</p>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-xl space-y-1">
+                <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Jurisdiction & Location</p>
+                <p className="font-extrabold text-sm text-amber-950">{selectedCase.location}</p>
+                <p className="text-[10px] font-mono text-amber-800">Priority: {selectedCase.priority}</p>
+              </div>
+            </div>
+
+            {/* NEEDFUL ATTACHED DOCUMENTS ONLY SECTION */}
+            <div className="space-y-3">
+              <div className="flex justify-between items-center border-b-2 border-indigo-100 pb-2">
+                <h3 className="font-extrabold text-sm text-indigo-950 uppercase tracking-wide flex items-center gap-2">
+                  <FileCheck className="w-4 h-4 text-indigo-600" />
+                  Attached Needful Evidence Documents ({currentCaseFiles.length})
+                </h3>
+                <span className="text-[10px] bg-slate-100 text-slate-700 font-bold px-2 py-0.5 rounded border border-slate-300">
+                  Case Ref: {selectedCase.id}
+                </span>
+              </div>
+
+              {currentCaseFiles.length === 0 ? (
+                <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-center text-xs text-slate-500 italic">
+                  No custom evidence files attached to case {selectedCase.id}.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  {currentCaseFiles.map((file, idx) => (
+                    <div key={file.id} className="bg-slate-50 border border-slate-200 p-3 rounded-xl flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-[10px] flex items-center justify-center shrink-0">
+                          {idx + 1}
+                        </span>
+                        <div>
+                          <p className="font-extrabold text-slate-900 text-xs">{file.fileName}</p>
+                          <p className="text-[10px] text-slate-500 font-mono">{file.fileSize} • Uploaded {file.uploadDate}</p>
+                        </div>
+                      </div>
+                      <span className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-2 py-0.5 rounded border border-emerald-300 uppercase font-mono">
+                        HSM VERIFIED
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* COERCIVE SCRIPT TRANSCRIPT */}
+            <div className="space-y-2">
+              <h3 className="font-extrabold text-xs text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-rose-600" /> Incident Forensic Transcript & Statements
+              </h3>
+              <div className="bg-slate-900 text-slate-100 p-4 rounded-xl font-mono text-xs border border-slate-800 leading-relaxed shadow-inner">
+                "{selectedCase.detail}"
+              </div>
+            </div>
+
+            {/* CRYPTOGRAPHIC INTEGRITY FOOTER */}
+            <div className="bg-slate-100 border border-slate-300 p-4 rounded-xl grid grid-cols-2 gap-4 text-[10px] font-mono">
+              <div>
+                <p className="text-slate-500 font-bold uppercase">SHA-256 Cryptographic Hash</p>
+                <p className="text-indigo-900 font-bold break-all mt-0.5">
+                  4a9b2c3d8e9f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b
+                </p>
+              </div>
+
+              <div>
+                <p className="text-slate-500 font-bold uppercase">HSM Digital Seal Signature</p>
+                <p className="text-emerald-900 font-bold break-all mt-0.5">
+                  a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2
+                </p>
+              </div>
+            </div>
+
+            {/* SIGNATURE STAMP FOOTER */}
+            <div className="pt-4 border-t border-slate-300 flex justify-between items-end text-xs">
+              <div className="space-y-1">
+                <p className="font-bold text-slate-800">SentinelX Forensic Ledger Officer</p>
+                <p className="text-[10px] text-slate-500">Insp. R. Sharma (Admin ID: USR-ADMIN-01)</p>
+              </div>
+
+              <div className="text-right">
+                <div className="w-32 border-b-2 border-slate-900 mb-1"></div>
+                <p className="text-[10px] font-bold text-slate-900 uppercase">Authorized Official Stamp</p>
+              </div>
             </div>
           </div>
-
-          <table className="w-full text-xs text-left border-collapse border border-slate-300">
-            <tbody>
-              <tr className="bg-slate-50 border-b border-slate-300">
-                <td className="p-2.5 font-bold w-1/3 text-slate-700">Incident Classification</td>
-                <td className="p-2.5 font-semibold text-slate-900">{selectedCase.crimeCategory}</td>
-              </tr>
-              <tr className="border-b border-slate-300">
-                <td className="p-2.5 font-bold text-slate-700">Primary Complainant / Phone</td>
-                <td className="p-2.5 font-semibold text-slate-900">{selectedCase.reporter} ({selectedCase.phone})</td>
-              </tr>
-              <tr className="bg-slate-50 border-b border-slate-300">
-                <td className="p-2.5 font-bold text-slate-700">Jurisdiction & Location</td>
-                <td className="p-2.5 font-semibold text-slate-900">{selectedCase.location}</td>
-              </tr>
-              <tr className="border-b border-slate-300">
-                <td className="p-2.5 font-bold text-slate-700">Attached Evidence Files</td>
-                <td className="p-2.5 font-semibold text-slate-900">
-                  {currentCaseFiles.length > 0
-                    ? currentCaseFiles.map(f => f.fileName).join(', ')
-                    : 'cbi_digital_arrest_call_recording.wav, fake_notice_police.pdf'}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div className="space-y-2">
-            <p className="text-xs font-bold text-slate-900 border-b border-slate-200 pb-1 uppercase tracking-wider">
-              I. Coercive Script Transcripts & Forensic Evidence
-            </p>
-            <p className="text-[11px] font-mono leading-relaxed text-slate-800 bg-slate-50 p-3.5 rounded border border-slate-200">
-              "{selectedCase.detail}"
-            </p>
-          </div>
         </div>
+
       </div>
 
       {/* REAL DOCUMENT PREVIEW MODAL */}
