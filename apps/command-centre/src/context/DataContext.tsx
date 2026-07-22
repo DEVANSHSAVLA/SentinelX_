@@ -84,7 +84,7 @@ export const resolveCityCoords = (locationStr: string): { lat: number; lng: numb
 
 interface DataContextType {
   isAuthenticated: boolean;
-  loginWithCredentials: (email: string, password: string, role: 'ADMIN' | 'CITIZEN') => boolean;
+  loginWithCredentials: (email: string, password: string, role: 'ADMIN' | 'CITIZEN', customName?: string) => boolean;
   currentUser: UserProfile;
   switchUserRole: (role: 'ADMIN' | 'CITIZEN') => void;
   loginWithGoogle: (email: string, name: string, role: 'ADMIN' | 'CITIZEN', avatar?: string) => void;
@@ -429,13 +429,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const loginWithCredentials = (email: string, _pass: string, role: 'ADMIN' | 'CITIZEN'): boolean => {
-    const user = role === 'ADMIN' ? {
-      ...ADMIN_USER,
-      email: email || ADMIN_USER.email
-    } : {
-      ...CITIZEN_USER,
-      email: email || CITIZEN_USER.email
+  const loginWithCredentials = (email: string, _pass: string, role: 'ADMIN' | 'CITIZEN', customName?: string): boolean => {
+    let name = customName;
+    if (!name) {
+      if (email.toLowerCase() === ADMIN_USER.email.toLowerCase()) name = ADMIN_USER.name;
+      else if (email.toLowerCase() === CITIZEN_USER.email.toLowerCase()) name = CITIZEN_USER.name;
+      else {
+        const prefix = email.split('@')[0] || 'User';
+        name = prefix.split(/[\._-]/).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+      }
+    }
+
+    const user: UserProfile = {
+      id: `USR-${Math.random().toString(36).substr(2, 6)}`,
+      name,
+      email,
+      role,
+      avatar: role === 'ADMIN'
+        ? ADMIN_USER.avatar
+        : `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`
     };
 
     setCurrentUser(user);
