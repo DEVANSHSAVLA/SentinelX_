@@ -3,7 +3,7 @@ import {
   StyleSheet, Text, View, TouchableOpacity, ScrollView, TextInput, 
   ActivityIndicator, Alert, SafeAreaView, Dimensions 
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+const StatusBar = (_props: any) => null;
 
 const { width } = Dimensions.get('window');
 
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#10b981',
     alignItems: 'center',
-    justify.content: 'center',
+    justifyContent: 'center',
     marginBottom: 10,
   },
   statusDotActive: {

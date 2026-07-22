@@ -98,6 +98,22 @@ const limiter = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again later.' },
 });
+// Root Route Handler
+app.get('/', (req, res) => {
+  return res.json({
+    status: 'UP',
+    service: 'SentinelX Enterprise API Gateway',
+    version: 'v2.0.0',
+    port: PORT,
+    endpoints: {
+      health: '/health',
+      liveness: '/health/liveness',
+      readiness: '/health/readiness',
+      auth: '/api/v1/auth',
+    }
+  });
+});
+
 app.use(limiter);
 
 // ----------------------------------------------------
@@ -302,7 +318,17 @@ app.get('/health', (req, res) => {
   return res.json({ status: 'UP', service: 'sentinelx-api-gateway' });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  logger.info(`SentinelX API Gateway listening on port ${PORT}`);
-});
+// Dynamic Port Binding Listener
+const startServer = (portToTry: number) => {
+  const srv = app.listen(portToTry, () => {
+    logger.info(`SentinelX API Gateway active and listening on port ${portToTry}`);
+  });
+  srv.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      logger.warn(`Port ${portToTry} in use, trying fallback port ${portToTry + 10}...`);
+      startServer(portToTry + 10);
+    }
+  });
+};
+
+startServer(Number(PORT));
