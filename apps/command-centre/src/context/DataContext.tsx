@@ -213,13 +213,16 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { addToast } = useNotification();
 
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    const saved = localStorage.getItem('sentinelx_is_authenticated');
+    // Clear legacy persistent localStorage logins so session-only auth is enforced
+    localStorage.removeItem('sentinelx_is_authenticated');
+    localStorage.removeItem('sentinelx_current_user');
+    const saved = sessionStorage.getItem('sentinelx_is_authenticated');
     return saved === 'true';
   });
 
   const [currentUser, setCurrentUser] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('sentinelx_current_user');
-    return saved ? JSON.parse(saved) : ADMIN_USER;
+    const saved = sessionStorage.getItem('sentinelx_current_user');
+    return saved ? JSON.parse(saved) : CITIZEN_USER;
   });
 
   const [isGoogleAuthModalOpen, setIsGoogleAuthModalOpen] = useState(false);
@@ -413,7 +416,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const switchUserRole = (role: 'ADMIN' | 'CITIZEN') => {
     const newUser = role === 'ADMIN' ? ADMIN_USER : CITIZEN_USER;
     setCurrentUser(newUser);
-    localStorage.setItem('sentinelx_current_user', JSON.stringify(newUser));
+    sessionStorage.setItem('sentinelx_current_user', JSON.stringify(newUser));
     broadcastChange('SYNC_USER', newUser);
 
     if (role === 'ADMIN') {
@@ -484,8 +487,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setCurrentUser(user);
     setIsAuthenticated(true);
-    localStorage.setItem('sentinelx_current_user', JSON.stringify(user));
-    localStorage.setItem('sentinelx_is_authenticated', 'true');
+    sessionStorage.setItem('sentinelx_current_user', JSON.stringify(user));
+    sessionStorage.setItem('sentinelx_is_authenticated', 'true');
     broadcastChange('SYNC_USER', user);
     broadcastChange('SYNC_AUTH', true);
 
@@ -513,8 +516,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     setCurrentUser(newUser);
     setIsAuthenticated(true);
-    localStorage.setItem('sentinelx_current_user', JSON.stringify(newUser));
-    localStorage.setItem('sentinelx_is_authenticated', 'true');
+    sessionStorage.setItem('sentinelx_current_user', JSON.stringify(newUser));
+    sessionStorage.setItem('sentinelx_is_authenticated', 'true');
     broadcastChange('SYNC_USER', newUser);
     broadcastChange('SYNC_AUTH', true);
 
@@ -534,9 +537,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setIsAuthenticated(false);
+    sessionStorage.removeItem('sentinelx_is_authenticated');
+    sessionStorage.removeItem('sentinelx_current_user');
     localStorage.removeItem('sentinelx_is_authenticated');
+    localStorage.removeItem('sentinelx_current_user');
     setCurrentUser(CITIZEN_USER);
-    localStorage.setItem('sentinelx_current_user', JSON.stringify(CITIZEN_USER));
     broadcastChange('SYNC_AUTH', false);
     broadcastChange('SYNC_USER', CITIZEN_USER);
 
