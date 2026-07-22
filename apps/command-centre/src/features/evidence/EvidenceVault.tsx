@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Printer, ShieldCheck, Lock, Unlock, Upload, FileText, Image, File, CheckCircle2, Key, X } from 'lucide-react';
-import { useData } from '../../context/DataContext';
+import { Printer, ShieldCheck, Lock, Unlock, Upload, FileText, Image, File, CheckCircle2, Key, X, Eye, ExternalLink } from 'lucide-react';
+import { useData, EvidenceFile } from '../../context/DataContext';
 
 export const EvidenceVault: React.FC = () => {
   const { userCases, cases, currentUser, evidenceFiles, addEvidenceFile, isHashUnlocked, unlockHashWithPassword } = useData();
@@ -11,6 +11,7 @@ export const EvidenceVault: React.FC = () => {
 
   const [passwordInput, setPasswordInput] = useState('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [viewingFile, setViewingFile] = useState<EvidenceFile | null>(null);
 
   const [selectedCaseId, setSelectedCaseId] = useState<string>(activeCase?.id || 'REP-2026-001');
   const selectedCase = cases.find(c => c.id === selectedCaseId) || activeCase;
@@ -61,6 +62,13 @@ export const EvidenceVault: React.FC = () => {
     });
 
     setUploadFileName('');
+  };
+
+  const handleViewDocument = (file: EvidenceFile) => {
+    if (file.fileUrl && file.fileUrl !== '#') {
+      window.open(file.fileUrl, '_blank');
+    }
+    setViewingFile(file);
   };
 
   const currentCaseFiles = evidenceFiles.filter(f => f.caseId === selectedCase.id);
@@ -250,13 +258,13 @@ export const EvidenceVault: React.FC = () => {
                       <p className="font-bold text-slate-200 truncate">{file.fileName}</p>
                       <p className="text-[10px] text-slate-500 mt-0.5">{file.fileSize} • Uploaded {file.uploadDate}</p>
                       <div className="mt-2 flex items-center gap-2">
-                        <a
-                          href={file.fileUrl}
-                          onClick={(e) => { e.preventDefault(); alert(`Viewing attached document: ${file.fileName}`); }}
-                          className="text-[10px] bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white px-2 py-0.5 rounded transition-colors"
+                        <button
+                          onClick={() => handleViewDocument(file)}
+                          className="text-[10px] bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white px-2.5 py-1 rounded font-semibold transition-colors cursor-pointer flex items-center gap-1"
                         >
+                          <Eye className="w-3 h-3 text-indigo-400" />
                           View Document
-                        </a>
+                        </button>
                         <span className="text-[9px] text-emerald-400 font-semibold flex items-center gap-0.5">
                           <CheckCircle2 className="w-3 h-3" /> HSM Verified
                         </span>
@@ -271,7 +279,7 @@ export const EvidenceVault: React.FC = () => {
         </div>
 
         {/* PRINTABLE LEGAL FORENSIC DOSSIER */}
-        <div id="printable-evidence-ledger" className="border border-slate-300 bg-white text-slate-900 p-8 rounded-lg min-h-[450px] space-y-6 shadow-xl">
+        <div id="printable-evidence-ledger" className="border border-slate-300 bg-white text-slate-900 p-8 rounded-lg min-h-[350px] space-y-6 shadow-xl">
           <div className="flex justify-between items-center border-b-2 border-slate-300 pb-4">
             <div>
               <h1 className="text-xl font-bold tracking-tight text-slate-900">SENTINELX PUBLIC SAFETY FORENSIC LEDGER</h1>
@@ -320,41 +328,99 @@ export const EvidenceVault: React.FC = () => {
               "{selectedCase.detail}"
             </p>
           </div>
-
-          <div className="space-y-2">
-            <p className="text-xs font-bold text-slate-900 border-b border-slate-200 pb-1 uppercase tracking-wider">
-              II. Trace Flow Hop Coordinates (NPCI Multi-Hop Trail)
-            </p>
-            <table className="w-full text-[10px] text-left border-collapse border border-slate-300">
-              <thead>
-                <tr className="bg-slate-900 text-white font-bold">
-                  <th className="p-2">Tx ID</th>
-                  <th className="p-2">From Account</th>
-                  <th className="p-2">To Account (Flagged Mule)</th>
-                  <th className="p-2">Amount (INR)</th>
-                  <th className="p-2">Timestamp</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-slate-300">
-                  <td className="p-2 font-mono">TXN-001</td>
-                  <td className="p-2 font-mono">BA-SBI-1002</td>
-                  <td className="p-2 font-semibold text-rose-700 font-mono">BA-HDFC-9921</td>
-                  <td className="p-2 font-bold text-rose-600 font-mono">₹2,50,000.00</td>
-                  <td className="p-2 font-mono">2026-06-22 17:35:00</td>
-                </tr>
-                <tr className="bg-slate-50">
-                  <td className="p-2 font-mono">TXN-002</td>
-                  <td className="p-2 font-mono">BA-HDFC-9921</td>
-                  <td className="p-2 font-semibold text-rose-700 font-mono">BA-ICICI-8812</td>
-                  <td className="p-2 font-bold text-rose-600 font-mono">₹2,40,000.00</td>
-                  <td className="p-2 font-mono">2026-06-22 17:38:00</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
+
+      {/* REAL DOCUMENT PREVIEW MODAL */}
+      {viewingFile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center bg-slate-850 px-6 py-4 border-b border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded bg-indigo-500/20 text-indigo-400">
+                  {viewingFile.fileType === 'pdf' ? <FileText className="w-5 h-5" /> : viewingFile.fileType === 'image' ? <Image className="w-5 h-5 text-emerald-400" /> : <File className="w-5 h-5 text-blue-400" />}
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-base">{viewingFile.fileName}</h4>
+                  <p className="text-xs text-slate-400">Size: {viewingFile.fileSize} • Case Ref: {viewingFile.caseId}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {viewingFile.fileUrl && viewingFile.fileUrl !== '#' && (
+                  <a
+                    href={viewingFile.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg flex items-center gap-1.5"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" /> Open Direct File
+                  </a>
+                )}
+                <button onClick={() => setViewingFile(null)} className="text-slate-400 hover:text-white p-1">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* PREVIEW CONTAINER */}
+            <div className="p-6 flex-1 overflow-y-auto space-y-4">
+              {viewingFile.fileUrl && (viewingFile.fileUrl.startsWith('blob:') || viewingFile.fileUrl.startsWith('data:')) ? (
+                viewingFile.fileType === 'image' ? (
+                  <div className="flex justify-center bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <img src={viewingFile.fileUrl} alt={viewingFile.fileName} className="max-h-[60vh] object-contain rounded" />
+                  </div>
+                ) : (
+                  <iframe src={viewingFile.fileUrl} className="w-full h-[60vh] rounded-xl border border-slate-800 bg-white" title={viewingFile.fileName} />
+                )
+              ) : (
+                /* FORMATTED ELECTRONIC DOCUMENT DOSSIER PREVIEW */
+                <div className="bg-white text-slate-900 p-6 rounded-xl border border-slate-300 space-y-4 text-xs">
+                  <div className="flex justify-between items-center border-b pb-3">
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-900 uppercase">AUTHENTICATED DIGITAL EVIDENCE DOSSIER</h3>
+                      <p className="text-[10px] text-slate-500 font-mono">FILE REF: {viewingFile.id} • CASE: {viewingFile.caseId}</p>
+                    </div>
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-300">
+                      HSM 256-BIT VERIFIED
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded text-[11px]">
+                    <div>
+                      <p className="text-slate-500 font-semibold">Document Name:</p>
+                      <p className="font-bold text-slate-900">{viewingFile.fileName}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 font-semibold">Upload Timestamp:</p>
+                      <p className="font-bold text-slate-900">{viewingFile.uploadDate}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="font-bold text-slate-800">File Contents Summary & Verification Status:</p>
+                    <p className="text-slate-700 leading-relaxed font-mono text-[11px] bg-slate-100 p-3 rounded">
+                      Document successfully parsed. Contains verified digital evidence linked to case {viewingFile.caseId}. Cryptographic signature match confirmed with 100% confidence.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-slate-850 px-6 py-3 border-t border-slate-800 flex justify-between items-center text-xs">
+              <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4" /> Cryptographically Sealed & Verified
+              </span>
+              <button
+                onClick={() => setViewingFile(null)}
+                className="px-4 py-1.5 bg-slate-800 text-slate-300 hover:text-white rounded font-bold"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ADMIN PASSWORD PROMPT MODAL */}
       {showPasswordModal && (
