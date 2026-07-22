@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Key, Shield, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { X, Shield, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
 export const GoogleAuthModal: React.FC = () => {
@@ -10,7 +10,7 @@ export const GoogleAuthModal: React.FC = () => {
 
   if (!isGoogleAuthModalOpen) return null;
 
-  const handleSSOAction = (providerName: 'GOOGLE' | 'MICROSOFT' | 'APPLE' | 'PASSKEY', role: 'ADMIN' | 'CITIZEN' = 'CITIZEN') => {
+  const handleSSOAction = (providerName: 'GOOGLE' | 'MICROSOFT' | 'APPLE', role: 'ADMIN' | 'CITIZEN' = 'CITIZEN') => {
     setBackgroundCheckStatus(`Running ${providerName} Identity Integrity & Background Check...`);
 
     setTimeout(() => {
@@ -94,7 +94,7 @@ export const GoogleAuthModal: React.FC = () => {
             </div>
           )}
 
-          {/* SSO BUTTONS LIST (EXACT IMAGE RECREATION) */}
+          {/* SSO BUTTONS LIST */}
           <div className="space-y-3">
             {/* 1. CONTINUE WITH GOOGLE */}
             <button
@@ -133,15 +133,6 @@ export const GoogleAuthModal: React.FC = () => {
                 <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.8.13-9.68-1.92-14.65-6.14-3.47-3.01-7.44-7.85-11.91-14.53-7.51-11.28-13.39-24.16-17.65-38.64-4.26-14.48-6.39-28.08-6.39-40.8 0-16.14 4.16-29.49 12.48-40.06 8.32-10.57 18.73-15.98 31.23-16.23 4.93 0 10.36 1.25 16.3 3.75 5.94 2.5 9.94 3.75 12 3.75 1.7 0 5.86-1.32 12.48-3.96 6.62-2.64 12.18-3.8 16.68-3.48 13.06.87 23.63 5.48 31.7 13.84-11.45 6.94-17.06 16.71-16.83 29.31.23 10.12 4.16 18.57 11.79 25.35 7.63 6.78 16.63 10.51 27.01 11.19-2.61 7.78-6.18 15.65-10.72 23.61zM119.22 31.84c0-7.72 2.76-15.11 8.28-22.17 5.52-7.06 12.39-11.4 20.61-13.02.58 7.37-1.89 14.71-7.41 22.02-5.52 7.31-12.48 11.53-20.88 12.66-.25-.49-.44-1.02-.6-1.49z"/>
               </svg>
               <span>{authMode === 'SIGN_IN' ? 'Sign in with Apple' : 'Sign up with Apple'}</span>
-            </button>
-
-            {/* 4. SIGN IN WITH A PASSKEY */}
-            <button
-              onClick={() => handleSSOAction('PASSKEY', 'CITIZEN')}
-              className="w-full py-3 px-5 rounded-full border border-slate-600 hover:border-slate-400 bg-slate-900 hover:bg-slate-800 text-slate-100 font-semibold text-sm transition-all shadow-md flex items-center justify-center gap-3 cursor-pointer"
-            >
-              <Key className="w-5 h-5 text-indigo-400 shrink-0" />
-              <span>Sign in with a passkey</span>
             </button>
           </div>
 
@@ -182,7 +173,7 @@ export const GoogleAuthModal: React.FC = () => {
             </div>
           </div>
 
-          {/* FOOTER TERMS & PRIVACY (EXACT MATCH) */}
+          {/* FOOTER TERMS & PRIVACY */}
           <div className="text-[10px] text-slate-400 text-center leading-relaxed pt-2">
             By continuing, you agree to SentinelX's{' '}
             <span className="text-indigo-400 hover:underline cursor-pointer">User Agreement</span>,{' '}
