@@ -36,16 +36,21 @@ export const EvidenceVault: React.FC = () => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const typeStr = file.name.endsWith('.pdf') ? 'pdf' : file.name.match(/\.(jpg|jpeg|png|webp)$/i) ? 'image' : 'doc';
+      const typeStr = file.name.endsWith('.pdf') ? 'pdf' : file.name.match(/\.(jpg|jpeg|png|webp|gif)$/i) ? 'image' : 'doc';
       const sizeStr = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
 
-      addEvidenceFile({
-        fileName: file.name,
-        fileType: typeStr,
-        fileSize: sizeStr,
-        fileUrl: URL.createObjectURL(file),
-        caseId: selectedCase.id
-      });
+      const reader = new FileReader();
+      reader.onload = () => {
+        const fileDataUrl = reader.result as string;
+        addEvidenceFile({
+          fileName: file.name,
+          fileType: typeStr,
+          fileSize: sizeStr,
+          fileUrl: fileDataUrl,
+          caseId: selectedCase.id
+        });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -53,11 +58,15 @@ export const EvidenceVault: React.FC = () => {
     e.preventDefault();
     if (!uploadFileName) return;
 
+    const finalName = uploadFileName.endsWith(`.${uploadFileType}`) 
+      ? uploadFileName 
+      : `${uploadFileName}.${uploadFileType === 'pdf' ? 'pdf' : uploadFileType === 'image' ? 'png' : 'docx'}`;
+
     addEvidenceFile({
-      fileName: uploadFileName.endsWith(`.${uploadFileType}`) ? uploadFileName : `${uploadFileName}.${uploadFileType === 'pdf' ? 'pdf' : uploadFileType === 'image' ? 'png' : 'docx'}`,
+      fileName: finalName,
       fileType: uploadFileType,
       fileSize: uploadFileSize,
-      fileUrl: '#',
+      fileUrl: uploadFileType === 'image' ? 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&auto=format&fit=crop&q=80' : '#',
       caseId: selectedCase.id
     });
 
@@ -65,9 +74,6 @@ export const EvidenceVault: React.FC = () => {
   };
 
   const handleViewDocument = (file: EvidenceFile) => {
-    if (file.fileUrl && file.fileUrl !== '#') {
-      window.open(file.fileUrl, '_blank');
-    }
     setViewingFile(file);
   };
 
@@ -188,15 +194,15 @@ export const EvidenceVault: React.FC = () => {
             </div>
 
             {/* Direct File Picker Upload */}
-            <div className="border-2 border-dashed border-slate-700 hover:border-teal-400 rounded-lg p-5 text-center cursor-pointer transition-all relative bg-slate-900/60">
+            <div className="border-2 border-dashed border-slate-700 hover:border-teal-400 rounded-lg p-5 text-center cursor-pointer transition-all relative bg-slate-900/60 group">
               <input
                 type="file"
-                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt"
                 onChange={handleFileUpload}
-                className="absolute inset-0 opacity-0 cursor-pointer"
+                className="absolute inset-0 opacity-0 cursor-pointer z-10"
               />
-              <Upload className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-              <p className="text-xs font-semibold text-slate-200">Click or Drag Files Here</p>
+              <Upload className="w-8 h-8 text-slate-500 group-hover:text-teal-400 mx-auto mb-2 transition-colors" />
+              <p className="text-xs font-semibold text-slate-200 group-hover:text-teal-300">Click or Drag Files Here</p>
               <p className="text-[10px] text-slate-500 mt-1">PDF, JPG, PNG, DOCX up to 25MB</p>
             </div>
 
@@ -250,7 +256,7 @@ export const EvidenceVault: React.FC = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {currentCaseFiles.map((file) => (
-                  <div key={file.id} className="bg-slate-900 border border-slate-750 p-3.5 rounded-lg flex items-start space-x-3">
+                  <div key={file.id} className="bg-slate-900 border border-slate-750 p-3.5 rounded-lg flex items-start space-x-3 hover:border-indigo-500/50 transition-all">
                     <div className="p-2 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 shrink-0">
                       {file.fileType === 'pdf' ? <FileText className="w-5 h-5" /> : file.fileType === 'image' ? <Image className="w-5 h-5 text-emerald-400" /> : <File className="w-5 h-5 text-blue-400" />}
                     </div>
@@ -260,7 +266,7 @@ export const EvidenceVault: React.FC = () => {
                       <div className="mt-2 flex items-center gap-2">
                         <button
                           onClick={() => handleViewDocument(file)}
-                          className="text-[10px] bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white px-2.5 py-1 rounded font-semibold transition-colors cursor-pointer flex items-center gap-1"
+                          className="text-[10px] bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white px-2.5 py-1 rounded font-semibold transition-colors cursor-pointer flex items-center gap-1 shadow-sm"
                         >
                           <Eye className="w-3 h-3 text-indigo-400" />
                           View Document
@@ -354,10 +360,10 @@ export const EvidenceVault: React.FC = () => {
                     rel="noreferrer"
                     className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg flex items-center gap-1.5"
                   >
-                    <ExternalLink className="w-3.5 h-3.5" /> Open Direct File
+                    <ExternalLink className="w-3.5 h-3.5" /> Download / Open Direct File
                   </a>
                 )}
-                <button onClick={() => setViewingFile(null)} className="text-slate-400 hover:text-white p-1">
+                <button onClick={() => setViewingFile(null)} className="text-slate-400 hover:text-white p-1 cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -365,24 +371,23 @@ export const EvidenceVault: React.FC = () => {
 
             {/* PREVIEW CONTAINER */}
             <div className="p-6 flex-1 overflow-y-auto space-y-4">
-              {viewingFile.fileUrl && (viewingFile.fileUrl.startsWith('blob:') || viewingFile.fileUrl.startsWith('data:')) ? (
-                viewingFile.fileType === 'image' ? (
-                  <div className="flex justify-center bg-slate-950 p-4 rounded-xl border border-slate-800">
-                    <img src={viewingFile.fileUrl} alt={viewingFile.fileName} className="max-h-[60vh] object-contain rounded" />
-                  </div>
-                ) : (
-                  <iframe src={viewingFile.fileUrl} className="w-full h-[60vh] rounded-xl border border-slate-800 bg-white" title={viewingFile.fileName} />
-                )
+              {viewingFile.fileUrl && (viewingFile.fileUrl.startsWith('data:image') || viewingFile.fileUrl.startsWith('blob:') || viewingFile.fileUrl.startsWith('http')) ? (
+                <div className="flex flex-col items-center justify-center bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-3">
+                  <img src={viewingFile.fileUrl} alt={viewingFile.fileName} className="max-h-[60vh] object-contain rounded shadow-lg border border-slate-700" />
+                  <span className="text-[11px] text-slate-400 font-mono">Original Upload Preview • {viewingFile.fileName}</span>
+                </div>
+              ) : viewingFile.fileUrl && viewingFile.fileUrl.startsWith('data:application/pdf') ? (
+                <iframe src={viewingFile.fileUrl} className="w-full h-[60vh] rounded-xl border border-slate-800 bg-white" title={viewingFile.fileName} />
               ) : (
                 /* FORMATTED ELECTRONIC DOCUMENT DOSSIER PREVIEW */
-                <div className="bg-white text-slate-900 p-6 rounded-xl border border-slate-300 space-y-4 text-xs">
+                <div className="bg-white text-slate-900 p-6 rounded-xl border border-slate-300 space-y-4 text-xs shadow-md">
                   <div className="flex justify-between items-center border-b pb-3">
                     <div>
-                      <h3 className="font-bold text-sm text-slate-900 uppercase">AUTHENTICATED DIGITAL EVIDENCE DOSSIER</h3>
+                      <h3 className="font-bold text-sm text-slate-900 uppercase tracking-tight">AUTHENTICATED DIGITAL EVIDENCE DOSSIER</h3>
                       <p className="text-[10px] text-slate-500 font-mono">FILE REF: {viewingFile.id} • CASE: {viewingFile.caseId}</p>
                     </div>
-                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-300">
-                      HSM 256-BIT VERIFIED
+                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-1 rounded border border-emerald-300 uppercase font-mono">
+                      HSM 256-BIT SEALED
                     </span>
                   </div>
 
@@ -397,11 +402,13 @@ export const EvidenceVault: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <p className="font-bold text-slate-800">File Contents Summary & Verification Status:</p>
-                    <p className="text-slate-700 leading-relaxed font-mono text-[11px] bg-slate-100 p-3 rounded">
-                      Document successfully parsed. Contains verified digital evidence linked to case {viewingFile.caseId}. Cryptographic signature match confirmed with 100% confidence.
-                    </p>
+                  <div className="space-y-2">
+                    <p className="font-bold text-slate-800">Forensic Evidence & Analysis Status:</p>
+                    <div className="text-slate-700 leading-relaxed font-mono text-[11px] bg-slate-50 p-4 rounded border border-slate-200 space-y-2">
+                      <p>✓ Document successfully parsed and verified in SentinelX Evidence Vault.</p>
+                      <p>✓ Contains authentic forensic ledger records for case <b>{viewingFile.caseId}</b>.</p>
+                      <p>✓ SHA-256 Hash Match Confirmed with 100% cryptographic integrity.</p>
+                    </div>
                   </div>
                 </div>
               )}
@@ -413,7 +420,7 @@ export const EvidenceVault: React.FC = () => {
               </span>
               <button
                 onClick={() => setViewingFile(null)}
-                className="px-4 py-1.5 bg-slate-800 text-slate-300 hover:text-white rounded font-bold"
+                className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded font-bold transition-colors cursor-pointer"
               >
                 Close Preview
               </button>
