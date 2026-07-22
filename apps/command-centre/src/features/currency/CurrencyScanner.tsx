@@ -36,7 +36,7 @@ export const CurrencyScanner: React.FC = () => {
       const reader = new FileReader();
       reader.onload = () => {
         setNoteImageUrl(reader.result as string);
-        setScanResult(null);
+        // Retain previous scan result until user clicks "Analyze Note via Computer Vision"
       };
       reader.readAsDataURL(file);
     }
