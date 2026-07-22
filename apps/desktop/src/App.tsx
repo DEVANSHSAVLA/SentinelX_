@@ -84,7 +84,42 @@ const DesktopAppContent: React.FC = () => {
         <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
 
         {/* Central Dashboard Canvas */}
-        <main className="flex-1 p-6 overflow-y-auto max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-6 overflow-y-auto max-w-7xl mx-auto w-full space-y-4">
+          
+          {/* DESKTOP NATIVE DIAGNOSTICS & SYSTEM CONTROL BANNER */}
+          <div className="bg-slate-900/90 border border-indigo-500/30 p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs shadow-lg">
+            <div className="flex items-center space-x-3">
+              <div className="p-2.5 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                <Monitor className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                  SentinelX Enterprise Desktop Application
+                  <span className="bg-emerald-500/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded-full font-mono border border-emerald-500/30">
+                    TAURI 2.0 RUST ACTIVE
+                  </span>
+                </h4>
+                <p className="text-slate-400 text-[11px]">
+                  Running in Cross-Platform Native Runtime • Windows (MSI), macOS (DMG), Linux (AppImage)
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setIsExpoQROpen(true)}
+                className="px-3 py-1.5 bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 text-xs"
+              >
+                <Shield className="w-3.5 h-3.5" />
+                <span>Mobile Expo Pair QR</span>
+              </button>
+
+              <span className="bg-slate-800 text-indigo-300 px-3 py-1.5 rounded-lg border border-slate-700 font-mono text-[11px]">
+                SQLite AES-256 Encrypted
+              </span>
+            </div>
+          </div>
+
           {activeTab === 'home' && (
             <DashboardOverview
               onNavigateTab={handleTabChange}
