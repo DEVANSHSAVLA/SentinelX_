@@ -44,7 +44,7 @@ export const ScamMonitor: React.FC = () => {
           <div className="flex justify-between items-center mb-2">
             <h4 className="font-bold text-lg text-white">Live Threat Analysis Streams</h4>
             <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-500/30">
-              {userSessions.filter(s => s.status !== 'CLOSED').length + userCases.filter(c => c.status !== 'CLOSED').length} Active
+              {userSessions.filter(s => s.status !== 'CLOSED').length} Active Stream{userSessions.filter(s => s.status !== 'CLOSED').length === 1 ? '' : 's'}
             </span>
           </div>
 

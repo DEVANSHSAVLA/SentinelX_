@@ -411,13 +411,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, 1800);
   };
 
-  const activeStreamsCount = sessions.filter(s => s.status !== 'CLOSED').length;
-  const networksTracedCount = cases.length + 39;
+  const activeStreamsCount = currentUser.role === 'ADMIN'
+    ? sessions.filter(s => s.status !== 'CLOSED').length
+    : userSessions.filter(s => s.status !== 'CLOSED').length;
+
+  const preventedLossVal = currentUser.role === 'ADMIN'
+    ? `₹${(cases.length * 1.8 + 5.2).toFixed(1)} Crores`
+    : `₹2.5 Lakhs (Protected)`;
+
+  const networksTracedVal = currentUser.role === 'ADMIN' ? (cases.length + 39) : 1;
+  const dismantledRingsVal = currentUser.role === 'ADMIN' ? 11 : 1;
+
   const kpis = {
     activeStreams: activeStreamsCount,
-    preventedLoss: `₹${(cases.length * 1.8 + 5.2).toFixed(1)} Crores`,
-    networksTraced: networksTracedCount,
-    dismantledRings: 11
+    preventedLoss: preventedLossVal,
+    networksTraced: networksTracedVal,
+    dismantledRings: dismantledRingsVal
   };
 
   return (
