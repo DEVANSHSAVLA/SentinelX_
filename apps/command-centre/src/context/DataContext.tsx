@@ -429,7 +429,39 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
-  const loginWithCredentials = (email: string, _pass: string, role: 'ADMIN' | 'CITIZEN', customName?: string): boolean => {
+  const loginWithCredentials = (email: string, pass: string, role: 'ADMIN' | 'CITIZEN', customName?: string): boolean => {
+    // 1. Strict Email Format Check
+    if (!email || !email.includes('@') || email.trim().length < 5) {
+      addToast({
+        type: 'critical',
+        title: 'Authentication Failed',
+        message: 'Invalid email format! Please enter a valid email address (e.g. user@domain.com).'
+      });
+      return false;
+    }
+
+    // 2. Password Length Check
+    if (!pass || pass.length < 6) {
+      addToast({
+        type: 'critical',
+        title: 'Authentication Failed',
+        message: 'Password must be at least 6 characters long!'
+      });
+      return false;
+    }
+
+    // 3. Admin Officer Role Password Authorization Check
+    if (role === 'ADMIN') {
+      if (pass !== 'Devansh172430@' && pass !== 'admin123') {
+        addToast({
+          type: 'critical',
+          title: 'Access Denied',
+          message: 'Incorrect Admin Password! Pre-authorized Officer credentials required (Devansh172430@).'
+        });
+        return false;
+      }
+    }
+
     let name = customName;
     if (!name) {
       if (email.toLowerCase() === ADMIN_USER.email.toLowerCase()) name = ADMIN_USER.name;

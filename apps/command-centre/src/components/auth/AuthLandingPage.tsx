@@ -15,19 +15,24 @@ export const AuthLandingPage: React.FC = () => {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!email || !password) {
-      setErrorMsg('Please enter valid email address and password.');
+    if (!email || !email.includes('@')) {
+      setErrorMsg('Invalid email format! Please enter a valid email address (e.g. user@domain.com).');
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters long!');
       return;
     }
 
     if (role === 'ADMIN' && password !== 'Devansh172430@' && password !== 'admin123') {
-      setErrorMsg('Incorrect Admin Officer Password! (Default: Devansh172430@)');
+      setErrorMsg('Incorrect Admin Officer Password! Authorized password required (Devansh172430@).');
       return;
     }
 
     const success = loginWithCredentials(email, password, role);
     if (!success) {
-      setErrorMsg('Authentication failed. Please verify credentials.');
+      setErrorMsg('Authentication failed! Please verify credentials.');
     }
   };
 
