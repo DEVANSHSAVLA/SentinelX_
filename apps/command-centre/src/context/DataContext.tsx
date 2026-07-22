@@ -553,12 +553,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // User-separated cases: ADMIN sees ALL cases; CITIZEN sees ONLY their own registered cases
   const userCases = currentUser.role === 'ADMIN'
     ? cases
-    : cases.filter(c => c.reporterEmail.toLowerCase() === currentUser.email.toLowerCase() || c.reporter.toLowerCase().includes(currentUser.name.toLowerCase()));
+    : cases.filter(c => 
+        (c.reporterEmail && c.reporterEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
+        (c.reporter && currentUser.email && c.reporter.toLowerCase() === currentUser.email.toLowerCase())
+      );
 
-  // User-separated live threat streams: ADMIN sees ALL streams; CITIZEN sees ONLY streams relevant to their location/phone
+  // User-separated live threat streams: ADMIN sees ALL streams; CITIZEN sees ONLY streams matching their filed cases
   const userSessions = currentUser.role === 'ADMIN'
     ? sessions
-    : sessions.filter(s => s.location.toLowerCase() === 'mumbai' || s.caller.includes('98765'));
+    : sessions.filter(s => 
+        userCases.some(uc => uc.phone && (uc.phone === s.caller || s.caller.includes(uc.phone)))
+      );
 
   const addCase = (caseData: Omit<CaseItem, 'id' | 'date' | 'coords' | 'reporterEmail'> & { location: string }) => {
     const nextNum = cases.length + 1;
@@ -689,10 +694,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const preventedLossVal = currentUser.role === 'ADMIN'
     ? `₹${(cases.length * 1.8 + 5.2).toFixed(1)} Crores`
-    : `₹2.5 Lakhs (Protected)`;
+    : userCases.length > 0 ? `₹${(userCases.length * 2.5).toFixed(1)} Lakhs (Protected)` : `₹0 (Protected)`;
 
-  const networksTracedVal = currentUser.role === 'ADMIN' ? (cases.length + 39) : 1;
-  const dismantledRingsVal = currentUser.role === 'ADMIN' ? 11 : 1;
+  const networksTracedVal = currentUser.role === 'ADMIN' ? (cases.length + 39) : userCases.length;
+  const dismantledRingsVal = currentUser.role === 'ADMIN' ? 11 : (userCases.length > 0 ? 1 : 0);
 
   const kpis = {
     activeStreams: activeStreamsCount,

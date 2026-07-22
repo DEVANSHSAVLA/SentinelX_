@@ -7,14 +7,26 @@ export const EvidenceVault: React.FC = () => {
 
   // If citizen, only show their cases; if admin, show all
   const activeCaseList = currentUser.role === 'ADMIN' ? cases : userCases;
-  const activeCase = activeCaseList[0] || cases[0];
+  const activeCase = activeCaseList.length > 0 ? activeCaseList[0] : null;
 
   const [passwordInput, setPasswordInput] = useState('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [viewingFile, setViewingFile] = useState<EvidenceFile | null>(null);
 
-  const [selectedCaseId, setSelectedCaseId] = useState<string>(activeCase?.id || 'REP-2026-001');
-  const selectedCase = cases.find(c => c.id === selectedCaseId) || activeCase;
+  const [selectedCaseId, setSelectedCaseId] = useState<string>(activeCase?.id || '');
+  const selectedCase = activeCaseList.find(c => c.id === selectedCaseId) || activeCase;
+
+  if (!selectedCase) {
+    return (
+      <div className="bg-slate-900 border border-slate-800 p-12 rounded-2xl shadow-lg text-center space-y-4">
+        <ShieldCheck className="w-12 h-12 text-indigo-400 mx-auto opacity-80" />
+        <h3 className="text-base font-bold text-white">No Evidence Packages Found</h3>
+        <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+          There are currently no forensic evidence packages or registered cases associated with <b className="text-slate-200">{currentUser.email}</b>.
+        </p>
+      </div>
+    );
+  }
 
   const [uploadFileName, setUploadFileName] = useState('');
   const [uploadFileType, setUploadFileType] = useState<'pdf' | 'image' | 'doc'>('pdf');

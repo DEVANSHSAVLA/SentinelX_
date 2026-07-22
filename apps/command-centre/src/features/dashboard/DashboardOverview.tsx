@@ -90,37 +90,56 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onNavigate
         </div>
 
         <div className="divide-y divide-slate-800/60">
-          {activeStreamList.filter(s => s.status !== 'CLOSED').map((threat) => (
-            <div
-              key={threat.id}
-              onClick={() => { setActiveSessionId(threat.id); onNavigateTab('scam'); }}
-              className="p-4 hover:bg-slate-800/40 transition-colors cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4"
-            >
-              <div className="flex items-start space-x-3">
-                <div className={`p-2 rounded-lg ${threat.priority === 'CRITICAL' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
-                  <AlertTriangle className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <span className="font-mono text-xs font-semibold text-slate-200">{threat.caller}</span>
-                    <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">{threat.impersonating}</span>
-                    <span className="text-[10px] text-slate-500">{threat.timestamp} ({threat.location})</span>
-                  </div>
-                  <p className="text-xs text-slate-400 mt-1 line-clamp-1 italic">"{threat.transcript}"</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-4 flex-shrink-0">
-                <div className="text-right">
-                  <div className="text-xs font-bold text-rose-400">{(threat.risk * 100).toFixed(0)}% Scam Risk</div>
-                  <div className="text-[10px] text-slate-500 font-mono">{threat.status}</div>
-                </div>
-                <button className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-200 text-xs font-medium transition-colors border border-slate-700">
-                  Inspect & Direct Action
+          {activeStreamList.filter(s => s.status !== 'CLOSED').length === 0 ? (
+            <div className="p-8 text-center text-xs text-slate-400 space-y-2">
+              <Shield className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+              <p className="font-bold text-slate-300">No Active Threat Streams Registered</p>
+              <p className="text-[11px] text-slate-500">
+                You have no active threat feeds or open cyber crime cases registered under <b className="text-slate-300">{currentUser.email}</b>.
+              </p>
+              <div className="pt-2">
+                <button
+                  onClick={openRegisterCaseModal}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-md"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>File New Incident Case</span>
                 </button>
               </div>
             </div>
-          ))}
+          ) : (
+            activeStreamList.filter(s => s.status !== 'CLOSED').map((threat) => (
+              <div
+                key={threat.id}
+                onClick={() => { setActiveSessionId(threat.id); onNavigateTab('scam'); }}
+                className="p-4 hover:bg-slate-800/40 transition-colors cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4"
+              >
+                <div className="flex items-start space-x-3">
+                  <div className={`p-2 rounded-lg ${threat.priority === 'CRITICAL' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                    <AlertTriangle className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-mono text-xs font-semibold text-slate-200">{threat.caller}</span>
+                      <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">{threat.impersonating}</span>
+                      <span className="text-[10px] text-slate-500">{threat.timestamp} ({threat.location})</span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1 line-clamp-1 italic">"{threat.transcript}"</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-4 flex-shrink-0">
+                  <div className="text-right">
+                    <div className="text-xs font-bold text-rose-400">{(threat.risk * 100).toFixed(0)}% Scam Risk</div>
+                    <div className="text-[10px] text-slate-500 font-mono">{threat.status}</div>
+                  </div>
+                  <button className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-200 text-xs font-medium transition-colors border border-slate-700">
+                    Inspect & Direct Action
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>
