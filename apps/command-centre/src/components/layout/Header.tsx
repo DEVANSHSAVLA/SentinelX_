@@ -78,12 +78,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette, onOpenExpo
           </button>
         </div>
 
-        {/* USER PROFILE & LOGOUT */}
+        {/* USER PROFILE & SWITCH ACCOUNT / LOGOUT */}
         <div className="flex items-center space-x-2 pl-3 border-l border-slate-800">
           <button
             onClick={openGoogleAuthModal}
-            className="flex items-center space-x-2.5 cursor-pointer hover:opacity-90 transition-opacity"
-            title="Click to Switch User Role / Sign In With Google"
+            className="flex items-center space-x-2.5 cursor-pointer hover:opacity-90 transition-opacity bg-slate-800/50 hover:bg-slate-800 p-1.5 rounded-xl border border-slate-700/60"
+            title="Click to Switch Google Account"
           >
             <div className="relative">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white overflow-hidden border ${currentUser.role === 'ADMIN' ? 'border-indigo-500 bg-indigo-950' : 'border-teal-500 bg-teal-950'}`}>
@@ -107,6 +107,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette, onOpenExpo
               </div>
               <p className="text-[10px] text-slate-400 font-mono truncate max-w-[150px]">{currentUser.email}</p>
             </div>
+          </button>
+
+          <button
+            onClick={openGoogleAuthModal}
+            className="px-2.5 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+            title="Switch Google Account"
+          >
+            <span>Switch Account</span>
           </button>
 
           <button
