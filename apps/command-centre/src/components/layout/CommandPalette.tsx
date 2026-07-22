@@ -41,7 +41,6 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     { id: 'scam', title: 'Open Scam Monitor & Live Call Directives', category: 'Navigation', icon: Smartphone, action: () => { onSelectTab('scam'); onClose(); } },
     { id: 'graph', title: 'Open Fraud Graph & Mule Ring Pathfinder', category: 'Navigation', icon: Network, action: () => { onSelectTab('graph'); onClose(); } },
     { id: 'map', title: 'Open Geospatial Crime Hotspot Heatmap', category: 'Navigation', icon: MapPin, action: () => { onSelectTab('map'); onClose(); } },
-    { id: 'reports', title: 'Open Citizen Inbox & Active Cases Desk', category: 'Navigation', icon: FileText, action: () => { onSelectTab('reports'); onClose(); } },
     { id: 'evidence', title: 'Open Digital Evidence Package Vault', category: 'Navigation', icon: FileText, action: () => { onSelectTab('evidence'); onClose(); } },
     { id: 'currency', title: 'Open Counterfeit Currency Note Scanner', category: 'Navigation', icon: DollarSign, action: () => { onSelectTab('currency'); onClose(); } },
     { id: 'agents', title: 'Open 12-Agent Autonomous Mesh Status', category: 'Navigation', icon: Cpu, action: () => { onSelectTab('agents'); onClose(); } },
