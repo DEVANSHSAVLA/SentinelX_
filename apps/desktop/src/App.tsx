@@ -32,7 +32,11 @@ export type TabType =
   | 'simulator' 
   | 'cases';
 
+import { AuthLandingPage } from '../../command-centre/src/components/auth/AuthLandingPage';
+import { useData } from '../../command-centre/src/context/DataContext';
+
 const DesktopAppContent: React.FC = () => {
+  const { isAuthenticated } = useData();
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isExpoQROpen, setIsExpoQROpen] = useState(false);
@@ -45,6 +49,15 @@ const DesktopAppContent: React.FC = () => {
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId as TabType);
   };
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <AuthLandingPage />
+        <GoogleAuthModal />
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">

@@ -83,6 +83,8 @@ export const resolveCityCoords = (locationStr: string): { lat: number; lng: numb
 };
 
 interface DataContextType {
+  isAuthenticated: boolean;
+  loginWithCredentials: (email: string, password: string, role: 'ADMIN' | 'CITIZEN') => boolean;
   currentUser: UserProfile;
   switchUserRole: (role: 'ADMIN' | 'CITIZEN') => void;
   loginWithGoogle: (email: string, name: string, role: 'ADMIN' | 'CITIZEN', avatar?: string) => void;
@@ -209,6 +211,11 @@ const DEFAULT_CASES: CaseItem[] = [
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { addToast } = useNotification();
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const saved = localStorage.getItem('sentinelx_is_authenticated');
+    return saved === 'true';
+  });
 
   const [currentUser, setCurrentUser] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('sentinelx_current_user');
@@ -422,6 +429,36 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  const loginWithCredentials = (email: string, _pass: string, role: 'ADMIN' | 'CITIZEN'): boolean => {
+    const user = role === 'ADMIN' ? {
+      ...ADMIN_USER,
+      email: email || ADMIN_USER.email
+    } : {
+      ...CITIZEN_USER,
+      email: email || CITIZEN_USER.email
+    };
+
+    setCurrentUser(user);
+    setIsAuthenticated(true);
+    localStorage.setItem('sentinelx_current_user', JSON.stringify(user));
+    localStorage.setItem('sentinelx_is_authenticated', 'true');
+    broadcastChange('SYNC_USER', user);
+    broadcastChange('SYNC_AUTH', true);
+
+    if (role === 'ADMIN') {
+      setIsHashUnlocked(true);
+      localStorage.setItem('sentinelx_hash_unlocked', JSON.stringify(true));
+      broadcastChange('SYNC_HASH_UNLOCKED', true);
+    }
+
+    addToast({
+      type: 'success',
+      title: `Authenticated as ${user.name}`,
+      message: `Successfully signed in (${role} access). Platform command mesh launched!`
+    });
+    return true;
+  };
+
   const loginWithGoogle = (email: string, name: string, role: 'ADMIN' | 'CITIZEN', avatar?: string) => {
     const newUser: UserProfile = {
       id: `USR-G-${Math.random().toString(36).substr(2, 6)}`,
@@ -431,8 +468,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       avatar: avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'
     };
     setCurrentUser(newUser);
+    setIsAuthenticated(true);
     localStorage.setItem('sentinelx_current_user', JSON.stringify(newUser));
+    localStorage.setItem('sentinelx_is_authenticated', 'true');
     broadcastChange('SYNC_USER', newUser);
+    broadcastChange('SYNC_AUTH', true);
 
     if (role === 'ADMIN') {
       setIsHashUnlocked(true);
@@ -449,14 +489,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('sentinelx_is_authenticated');
     setCurrentUser(CITIZEN_USER);
     localStorage.setItem('sentinelx_current_user', JSON.stringify(CITIZEN_USER));
+    broadcastChange('SYNC_AUTH', false);
     broadcastChange('SYNC_USER', CITIZEN_USER);
 
     addToast({
       type: 'info',
-      title: 'Logged Out',
-      message: 'Signed out successfully. Switched to Citizen mode.'
+      title: 'Signed Out',
+      message: 'Logged out of SentinelX. Returned to Authentication Portal.'
     });
   };
 
@@ -617,6 +660,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <DataContext.Provider
       value={{
+        isAuthenticated,
+        loginWithCredentials,
         currentUser,
         switchUserRole,
         loginWithGoogle,

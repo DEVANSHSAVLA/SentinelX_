@@ -18,6 +18,9 @@ import { FraudGraph } from './features/graph/FraudGraph';
 import { CitizenInbox } from './features/reports/CitizenInbox';
 import { EvidenceVault } from './features/evidence/EvidenceVault';
 
+import { AuthLandingPage } from './components/auth/AuthLandingPage';
+import { useData } from './context/DataContext';
+
 export type TabType = 
   | 'home' 
   | 'triage' 
@@ -32,6 +35,7 @@ export type TabType =
   | 'cases';
 
 const CommandCentreContent: React.FC = () => {
+  const { isAuthenticated } = useData();
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isExpoQROpen, setIsExpoQROpen] = useState(false);
@@ -39,6 +43,15 @@ const CommandCentreContent: React.FC = () => {
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId as TabType);
   };
+
+  if (!isAuthenticated) {
+    return (
+      <>
+        <AuthLandingPage />
+        <GoogleAuthModal />
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
