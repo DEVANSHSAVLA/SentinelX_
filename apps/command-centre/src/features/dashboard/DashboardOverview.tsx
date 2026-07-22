@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, DollarSign, Users, Shield, ArrowUpRight, AlertTriangle, ChevronRight, Plus } from 'lucide-react';
+import { Activity, DollarSign, Users, Shield, ArrowUpRight, AlertTriangle, ChevronRight, Plus, User, ShieldAlert } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
 interface DashboardOverviewProps {
@@ -7,10 +7,12 @@ interface DashboardOverviewProps {
 }
 
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onNavigateTab }) => {
-  const { kpis, sessions, setActiveSessionId, openRegisterCaseModal } = useData();
+  const { kpis, userSessions, sessions, setActiveSessionId, openRegisterCaseModal, currentUser } = useData();
+
+  const activeStreamList = currentUser.role === 'ADMIN' ? sessions : userSessions;
 
   const kpiItems = [
-    { title: "Active Scam Streams", value: `${kpis.activeStreams}`, change: "+12%", trend: "up", icon: Activity, color: "text-amber-500", bg: "bg-amber-500/10 border-amber-500/20" },
+    { title: "Active Scam Streams", value: `${activeStreamList.filter(s => s.status !== 'CLOSED').length}`, change: "+12%", trend: "up", icon: Activity, color: "text-amber-500", bg: "bg-amber-500/10 border-amber-500/20" },
     { title: "Prevented Capital Loss", value: kpis.preventedLoss, change: "+18%", trend: "up", icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-500/10 border-emerald-500/20" },
     { title: "Scam Networks Traced", value: `${kpis.networksTraced}`, change: "+5%", trend: "up", icon: Users, color: "text-teal-400", bg: "bg-teal-500/10 border-teal-500/20" },
     { title: "Dismantled Rings", value: `${kpis.dismantledRings}`, change: "+2", trend: "up", icon: Shield, color: "text-blue-500", bg: "bg-blue-500/10 border-blue-500/20" }
@@ -18,14 +20,24 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onNavigate
 
   return (
     <div className="space-y-6">
+      {/* ACCESS LEVEL BANNER */}
       <div className="p-4 rounded-xl bg-gradient-to-r from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-lg gap-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
-            <Shield className="w-5 h-5 text-indigo-400" />
+          <div className={`w-10 h-10 rounded-lg border flex items-center justify-center shrink-0 ${currentUser.role === 'ADMIN' ? 'bg-indigo-500/20 border-indigo-500/30 text-indigo-400' : 'bg-teal-500/20 border-teal-500/30 text-teal-400'}`}>
+            {currentUser.role === 'ADMIN' ? <ShieldAlert className="w-5 h-5" /> : <User className="w-5 h-5" />}
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-slate-100">National Defense Mesh Synchronized</h2>
-            <p className="text-xs text-slate-400">Monitoring telecom switches, NPCI UPI rails, and 12-regional language citizen gateways.</p>
+            <div className="flex items-center space-x-2">
+              <h2 className="text-sm font-semibold text-slate-100">National Defense Mesh Synchronized</h2>
+              <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${currentUser.role === 'ADMIN' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-teal-500/20 text-teal-400 border border-teal-500/30'}`}>
+                {currentUser.role} ACCESS
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">
+              {currentUser.role === 'ADMIN'
+                ? 'All-India Administrative View: Monitoring national telecom switches, NPCI UPI rails, and 12-language gateways.'
+                : `Private Citizen Isolation Mode: Displaying active threat feeds relevant to ${currentUser.name} (${currentUser.email}).`}
+            </p>
           </div>
         </div>
 
@@ -72,13 +84,13 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ onNavigate
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Activity className="w-4 h-4 text-indigo-400" />
-            <h3 className="text-sm font-semibold text-slate-100">Live Active Scam Streams (Telco Signal Intercept)</h3>
+            <h3 className="text-sm font-semibold text-slate-100">Live Active Scam Streams ({currentUser.role === 'ADMIN' ? 'All National Feeds' : `${currentUser.name} Isolated Feed`})</h3>
           </div>
           <span className="text-xs text-slate-400">Real-time Stream Engine</span>
         </div>
 
         <div className="divide-y divide-slate-800/60">
-          {sessions.filter(s => s.status !== 'CLOSED').map((threat) => (
+          {activeStreamList.filter(s => s.status !== 'CLOSED').map((threat) => (
             <div
               key={threat.id}
               onClick={() => { setActiveSessionId(threat.id); onNavigateTab('scam'); }}

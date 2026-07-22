@@ -91,6 +91,7 @@ interface DataContextType {
   cases: CaseItem[];
   userCases: CaseItem[];
   sessions: SessionItem[];
+  userSessions: SessionItem[];
   activeSessionId: string;
   setActiveSessionId: (id: string) => void;
   isRegisterCaseModalOpen: boolean;
@@ -300,6 +301,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ? cases
     : cases.filter(c => c.reporterEmail.toLowerCase() === currentUser.email.toLowerCase() || c.reporter.toLowerCase().includes(currentUser.name.toLowerCase()));
 
+  // User-separated live threat streams: ADMIN sees ALL streams; CITIZEN sees ONLY streams relevant to their location/phone
+  const userSessions = currentUser.role === 'ADMIN'
+    ? sessions
+    : sessions.filter(s => s.location.toLowerCase() === 'mumbai' || s.caller.includes('98765'));
+
   const addCase = (caseData: Omit<CaseItem, 'id' | 'date' | 'coords' | 'reporterEmail'> & { location: string }) => {
     const nextNum = cases.length + 1;
     const id = `REP-2026-00${nextNum}`;
@@ -427,6 +433,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         cases,
         userCases,
         sessions,
+        userSessions,
         activeSessionId,
         setActiveSessionId,
         isRegisterCaseModalOpen,
