@@ -7,6 +7,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { RegisterCaseModal } from './components/modals/RegisterCaseModal';
 import { GoogleAuthModal } from './components/modals/GoogleAuthModal';
+import { ExpoQRModal } from './components/modals/ExpoQRModal';
 import { DashboardOverview } from './features/dashboard/DashboardOverview';
 import { GeospatialMap } from './features/map/GeospatialMap';
 import { CurrencyScanner } from './features/currency/CurrencyScanner';
@@ -33,6 +34,7 @@ export type TabType =
 const CommandCentreContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isExpoQROpen, setIsExpoQROpen] = useState(false);
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId as TabType);
@@ -41,7 +43,10 @@ const CommandCentreContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
       {/* Top Header Bar */}
-      <Header onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
+      <Header
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        onOpenExpoQR={() => setIsExpoQROpen(true)}
+      />
 
       {/* Main Layout Container */}
       <div className="flex-1 flex overflow-hidden">
@@ -85,6 +90,7 @@ const CommandCentreContent: React.FC = () => {
       {/* Global Modals */}
       <RegisterCaseModal />
       <GoogleAuthModal />
+      <ExpoQRModal isOpen={isExpoQROpen} onClose={() => setIsExpoQROpen(false)} />
     </div>
   );
 };

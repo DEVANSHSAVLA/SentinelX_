@@ -8,6 +8,7 @@ import { Sidebar } from '../../command-centre/src/components/layout/Sidebar';
 import { CommandPalette } from '../../command-centre/src/components/layout/CommandPalette';
 import { RegisterCaseModal } from '../../command-centre/src/components/modals/RegisterCaseModal';
 import { GoogleAuthModal } from '../../command-centre/src/components/modals/GoogleAuthModal';
+import { ExpoQRModal } from '../../command-centre/src/components/modals/ExpoQRModal';
 import { DashboardOverview } from '../../command-centre/src/features/dashboard/DashboardOverview';
 import { GeospatialMap } from '../../command-centre/src/features/map/GeospatialMap';
 import { CurrencyScanner } from '../../command-centre/src/features/currency/CurrencyScanner';
@@ -34,6 +35,7 @@ export type TabType =
 const DesktopAppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isExpoQROpen, setIsExpoQROpen] = useState(false);
   const [nativeStatus, setNativeStatus] = useState('TAURI_NATIVE_BOUND');
 
   useEffect(() => {
@@ -71,7 +73,10 @@ const DesktopAppContent: React.FC = () => {
       </div>
 
       {/* Top Header Bar */}
-      <Header onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
+      <Header
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        onOpenExpoQR={() => setIsExpoQROpen(true)}
+      />
 
       {/* Main Layout Container */}
       <div className="flex-1 flex overflow-hidden">
@@ -115,6 +120,7 @@ const DesktopAppContent: React.FC = () => {
       {/* Global Modals */}
       <RegisterCaseModal />
       <GoogleAuthModal />
+      <ExpoQRModal isOpen={isExpoQROpen} onClose={() => setIsExpoQROpen(false)} />
     </div>
   );
 };

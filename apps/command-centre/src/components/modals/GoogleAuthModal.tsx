@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Shield, User, CheckCircle2, UserPlus, LogIn, Lock, Mail, Phone, ShieldCheck } from 'lucide-react';
+import { X, Shield, User, CheckCircle2, UserPlus, LogIn, Mail, Phone, ShieldCheck } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
 export const GoogleAuthModal: React.FC = () => {

@@ -1,14 +1,15 @@
 import React from 'react';
-import { Shield, Bell, Moon, Sun, Search, Plus, AlertCircle, CheckCircle, Info, UserCheck, ShieldAlert } from 'lucide-react';
+import { Shield, Bell, Moon, Sun, Search, Plus, AlertCircle, CheckCircle, Info, UserCheck, ShieldAlert, QrCode } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useNotification } from '../../context/NotificationContext';
 import { useData } from '../../context/DataContext';
 
 interface HeaderProps {
   onOpenCommandPalette: () => void;
+  onOpenExpoQR?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette, onOpenExpoQR }) => {
   const { theme, toggleTheme } = useTheme();
   const { toasts, removeToast } = useNotification();
   const { openRegisterCaseModal, currentUser, openGoogleAuthModal } = useData();
@@ -29,6 +30,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
       </div>
 
       <div className="flex items-center space-x-3">
+        {/* EXPO MOBILE QR CODE MODAL BUTTON */}
+        {onOpenExpoQR && (
+          <button
+            onClick={onOpenExpoQR}
+            className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-300 hover:bg-teal-500/20 transition-all text-xs font-bold cursor-pointer"
+            title="Scan Expo QR Code to launch Mobile App on Physical Device"
+          >
+            <QrCode className="w-3.5 h-3.5 text-teal-400" />
+            <span>Expo Mobile QR</span>
+          </button>
+        )}
+
         <button
           onClick={openRegisterCaseModal}
           className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
