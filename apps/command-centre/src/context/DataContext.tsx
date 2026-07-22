@@ -314,35 +314,56 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       };
     }
 
-    // CROSS-ORIGIN POLLING: Sync state via API server every 2 seconds
-    const pollInterval = setInterval(async () => {
+    // CROSS-ORIGIN POLLING & INITIAL SYNC: Sync state via API server every 1s
+    const fetchAndSync = async () => {
       try {
         const res = await fetch(SYNC_API_BASE);
         if (!res.ok) return;
         const remote = await res.json();
+
+        // On first run, if server has no evidence_files, push local state to server
+        if (remote.evidence_files === null && evidenceFiles.length > 0) {
+          fetch(SYNC_API_BASE, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: 'evidence_files', value: evidenceFiles })
+          }).catch(() => {});
+        } else if (remote.evidence_files && Array.isArray(remote.evidence_files)) {
+          setEvidenceFiles(remote.evidence_files);
+          localStorage.setItem('sentinelx_evidence_files', JSON.stringify(remote.evidence_files));
+        }
+
+        if (remote.cases === null && cases.length > 0) {
+          fetch(SYNC_API_BASE, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: 'cases', value: cases })
+          }).catch(() => {});
+        } else if (remote.cases && Array.isArray(remote.cases)) {
+          setCases(remote.cases);
+          localStorage.setItem('sentinelx_cases', JSON.stringify(remote.cases));
+        }
+
+        if (remote.hash_unlocked !== null && remote.hash_unlocked !== undefined) {
+          setIsHashUnlocked(remote.hash_unlocked);
+          localStorage.setItem('sentinelx_hash_unlocked', JSON.stringify(remote.hash_unlocked));
+        }
+
+        if (remote.current_user) {
+          setCurrentUser(remote.current_user);
+          localStorage.setItem('sentinelx_current_user', JSON.stringify(remote.current_user));
+        }
+
         if (remote._version > syncVersionRef.current) {
           syncVersionRef.current = remote._version;
-          if (remote.hash_unlocked !== null && remote.hash_unlocked !== undefined) {
-            setIsHashUnlocked(remote.hash_unlocked);
-            localStorage.setItem('sentinelx_hash_unlocked', JSON.stringify(remote.hash_unlocked));
-          }
-          if (remote.evidence_files) {
-            setEvidenceFiles(remote.evidence_files);
-            localStorage.setItem('sentinelx_evidence_files', JSON.stringify(remote.evidence_files));
-          }
-          if (remote.cases) {
-            setCases(remote.cases);
-            localStorage.setItem('sentinelx_cases', JSON.stringify(remote.cases));
-          }
-          if (remote.current_user) {
-            setCurrentUser(remote.current_user);
-            localStorage.setItem('sentinelx_current_user', JSON.stringify(remote.current_user));
-          }
         }
       } catch {
         // API server not reachable — fall back silently to localStorage-only
       }
-    }, 2000);
+    };
+
+    fetchAndSync();
+    const pollInterval = setInterval(fetchAndSync, 1000);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
@@ -508,7 +529,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addEvidenceFile = (file: Omit<EvidenceFile, 'id' | 'uploadDate'>) => {
     const newFile: EvidenceFile = {
       ...file,
-      id: `FILE-00${evidenceFiles.length + 1}`,
+      id: `FILE-${Date.now().toString().slice(-6)}`,
       uploadDate: new Date().toISOString().split('T')[0]
     };
     setEvidenceFiles(prev => {
