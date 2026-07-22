@@ -1,9 +1,18 @@
 import React, { createContext, useContext, useState } from 'react';
 import { useNotification } from './NotificationContext';
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: 'ADMIN' | 'CITIZEN';
+  avatar?: string;
+}
+
 export interface CaseItem {
   id: string;
   reporter: string;
+  reporterEmail: string;
   phone: string;
   crimeCategory: string;
   detail: string;
@@ -35,6 +44,16 @@ export interface CurrencyScanResult {
   imagePreview: string;
 }
 
+export interface EvidenceFile {
+  id: string;
+  fileName: string;
+  fileType: 'pdf' | 'image' | 'doc';
+  fileSize: string;
+  uploadDate: string;
+  fileUrl: string;
+  caseId: string;
+}
+
 export const CITY_COORDINATES: Record<string, { lat: number; lng: number }> = {
   "mumbai": { lat: 19.0760, lng: 72.8777 },
   "bandra": { lat: 19.0596, lng: 72.8295 },
@@ -58,24 +77,35 @@ export const resolveCityCoords = (locationStr: string): { lat: number; lng: numb
       return CITY_COORDINATES[city];
     }
   }
-  // Default to central India centroid
   return { lat: 20.5937, lng: 78.9629 };
 };
 
 interface DataContextType {
+  currentUser: UserProfile;
+  switchUserRole: (role: 'ADMIN' | 'CITIZEN') => void;
+  loginWithGoogle: (email: string, name: string, role: 'ADMIN' | 'CITIZEN', avatar?: string) => void;
+  logout: () => void;
+  isGoogleAuthModalOpen: boolean;
+  openGoogleAuthModal: () => void;
+  closeGoogleAuthModal: () => void;
   cases: CaseItem[];
+  userCases: CaseItem[];
   sessions: SessionItem[];
   activeSessionId: string;
   setActiveSessionId: (id: string) => void;
   isRegisterCaseModalOpen: boolean;
   openRegisterCaseModal: () => void;
   closeRegisterCaseModal: () => void;
-  addCase: (caseData: Omit<CaseItem, 'id' | 'date' | 'coords'> & { location: string }) => void;
+  addCase: (caseData: Omit<CaseItem, 'id' | 'date' | 'coords' | 'reporterEmail'> & { location: string }) => void;
   updateCaseStatus: (id: string, status: CaseItem['status']) => void;
   updateSessionStatus: (id: string, status: string) => void;
   currencyScanResult: CurrencyScanResult | null;
   isCurrencyScanning: boolean;
   runCurrencyScan: (fileUrl: string) => void;
+  evidenceFiles: EvidenceFile[];
+  addEvidenceFile: (file: Omit<EvidenceFile, 'id' | 'uploadDate'>) => void;
+  isHashUnlocked: boolean;
+  unlockHashWithPassword: (password: string) => boolean;
   kpis: {
     activeStreams: number;
     preventedLoss: string;
@@ -86,13 +116,33 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+export const ADMIN_USER: UserProfile = {
+  id: 'USR-ADMIN-01',
+  name: 'Insp. R. Sharma (Admin)',
+  email: 'admin@sentinelx.gov.in',
+  role: 'ADMIN',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
+};
+
+export const CITIZEN_USER: UserProfile = {
+  id: 'USR-CITIZEN-01',
+  name: 'Sunita Patel (Citizen)',
+  email: 'sunita.patel@gmail.com',
+  role: 'CITIZEN',
+  avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80'
+};
+
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { addToast } = useNotification();
+
+  const [currentUser, setCurrentUser] = useState<UserProfile>(ADMIN_USER);
+  const [isGoogleAuthModalOpen, setIsGoogleAuthModalOpen] = useState(false);
 
   const [cases, setCases] = useState<CaseItem[]>([
     {
       id: 'REP-2026-001',
-      reporter: 'Sunita Patel',
+      reporter: 'Sunita Patel (Citizen)',
+      reporterEmail: 'sunita.patel@gmail.com',
       phone: '+919876543210',
       crimeCategory: 'Fake Calls Frauds',
       detail: 'Received fake police digital arrest call demanding money via UPI.',
@@ -105,6 +155,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     {
       id: 'REP-2026-002',
       reporter: 'Ramesh Kumar',
+      reporterEmail: 'ramesh.kumar@gmail.com',
       phone: '+919811223344',
       crimeCategory: 'Net Banking/ATM Frauds',
       detail: 'Unauthorized transaction of Rs 50,000 from SBI account.',
@@ -117,6 +168,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     {
       id: 'REP-2026-003',
       reporter: 'Ananya Roy',
+      reporterEmail: 'ananya.roy@gmail.com',
       phone: '+919711224455',
       crimeCategory: 'Counterfeit Currency Note',
       detail: 'Received fake 500 note from local merchant.',
@@ -164,16 +216,91 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   ]);
 
+  const [evidenceFiles, setEvidenceFiles] = useState<EvidenceFile[]>([
+    {
+      id: 'FILE-001',
+      fileName: 'cbi_digital_arrest_call_recording.wav',
+      fileType: 'doc',
+      fileSize: '4.2 MB',
+      uploadDate: new Date().toISOString().split('T')[0],
+      fileUrl: '#',
+      caseId: 'REP-2026-001'
+    },
+    {
+      id: 'FILE-002',
+      fileName: 'fake_notice_police_letterhead.pdf',
+      fileType: 'pdf',
+      fileSize: '1.8 MB',
+      uploadDate: new Date().toISOString().split('T')[0],
+      fileUrl: '#',
+      caseId: 'REP-2026-001'
+    },
+    {
+      id: 'FILE-003',
+      fileName: 'counterfeit_500_note_watermark.jpg',
+      fileType: 'image',
+      fileSize: '2.5 MB',
+      uploadDate: new Date().toISOString().split('T')[0],
+      fileUrl: '#',
+      caseId: 'REP-2026-003'
+    }
+  ]);
+
+  const [isHashUnlocked, setIsHashUnlocked] = useState<boolean>(false);
   const [activeSessionId, setActiveSessionId] = useState<string>("SESS-8921");
   const [isRegisterCaseModalOpen, setIsRegisterCaseModalOpen] = useState(false);
 
   const [currencyScanResult, setCurrencyScanResult] = useState<CurrencyScanResult | null>(null);
   const [isCurrencyScanning, setIsCurrencyScanning] = useState(false);
 
+  const openGoogleAuthModal = () => setIsGoogleAuthModalOpen(true);
+  const closeGoogleAuthModal = () => setIsGoogleAuthModalOpen(false);
+
+  const switchUserRole = (role: 'ADMIN' | 'CITIZEN') => {
+    const newUser = role === 'ADMIN' ? ADMIN_USER : CITIZEN_USER;
+    setCurrentUser(newUser);
+    addToast({
+      type: 'info',
+      title: `Logged in as ${newUser.role}`,
+      message: `User switched to ${newUser.name} (${newUser.email}). Role-based data filtering active!`
+    });
+  };
+
+  const loginWithGoogle = (email: string, name: string, role: 'ADMIN' | 'CITIZEN', avatar?: string) => {
+    const newUser: UserProfile = {
+      id: `USR-G-${Math.random().toString(36).substr(2, 6)}`,
+      name,
+      email,
+      role,
+      avatar: avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80'
+    };
+    setCurrentUser(newUser);
+    addToast({
+      type: 'success',
+      title: 'Google Auth Successful',
+      message: `Signed in as ${name} (${role} access).`
+    });
+    closeGoogleAuthModal();
+  };
+
+  const logout = () => {
+    setCurrentUser(CITIZEN_USER);
+    addToast({
+      type: 'info',
+      title: 'Logged Out',
+      message: 'Signed out successfully. Switched to Citizen mode.'
+    });
+  };
+
   const openRegisterCaseModal = () => setIsRegisterCaseModalOpen(true);
   const closeRegisterCaseModal = () => setIsRegisterCaseModalOpen(false);
 
-  const addCase = (caseData: Omit<CaseItem, 'id' | 'date' | 'coords'> & { location: string }) => {
+  // User-separated cases: ADMIN sees ALL cases; CITIZEN sees ONLY their own registered cases
+  const userCases = currentUser.role === 'ADMIN'
+    ? cases
+    : cases.filter(c => c.reporterEmail.toLowerCase() === currentUser.email.toLowerCase() || c.reporter.toLowerCase().includes(currentUser.name.toLowerCase()));
+
+  const addCase = (caseData: Omit<CaseItem, 'id' | 'date' | 'coords' | 'reporterEmail'> & { location: string }) => {
     const nextNum = cases.length + 1;
     const id = `REP-2026-00${nextNum}`;
     const date = new Date().toISOString().split('T')[0];
@@ -182,6 +309,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newCase: CaseItem = {
       ...caseData,
       id,
+      reporterEmail: currentUser.email,
       date,
       coords
     };
@@ -190,8 +318,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     addToast({
       type: newCase.priority === 'CRITICAL' ? 'critical' : 'success',
-      title: 'Incident Registered',
-      message: `Case ${id} registered for ${newCase.reporter} in ${newCase.location}. Map pin updated dynamically!`
+      title: 'Incident Case Registered',
+      message: `Case ${id} registered for ${newCase.reporter}. Isolated to ${currentUser.email}'s account ledger!`
     });
 
     closeRegisterCaseModal();
@@ -213,6 +341,39 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       title: 'Scam Action Directive Executed',
       message: `Session ${id} directive updated to: ${newStatus}`
     });
+  };
+
+  const addEvidenceFile = (file: Omit<EvidenceFile, 'id' | 'uploadDate'>) => {
+    const newFile: EvidenceFile = {
+      ...file,
+      id: `FILE-00${evidenceFiles.length + 1}`,
+      uploadDate: new Date().toISOString().split('T')[0]
+    };
+    setEvidenceFiles(prev => [newFile, ...prev]);
+    addToast({
+      type: 'success',
+      title: 'Evidence File Attached',
+      message: `Attached ${newFile.fileName} to Digital Evidence Package Vault!`
+    });
+  };
+
+  const unlockHashWithPassword = (password: string): boolean => {
+    if (password === 'admin123' || currentUser.role === 'ADMIN') {
+      setIsHashUnlocked(true);
+      addToast({
+        type: 'success',
+        title: 'Cryptographic Hash Unlocked',
+        message: 'Admin authentication verified! SHA-256 hash & HSM hex signature revealed.'
+      });
+      return true;
+    } else {
+      addToast({
+        type: 'critical',
+        title: 'Authentication Failed',
+        message: 'Incorrect Admin Password! Access denied.'
+      });
+      return false;
+    }
   };
 
   const runCurrencyScan = (fileUrl: string) => {
@@ -244,7 +405,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, 1800);
   };
 
-  // Dynamic KPI calculation
   const activeStreamsCount = sessions.filter(s => s.status !== 'CLOSED').length;
   const networksTracedCount = cases.length + 39;
   const kpis = {
@@ -257,7 +417,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <DataContext.Provider
       value={{
+        currentUser,
+        switchUserRole,
+        loginWithGoogle,
+        logout,
+        isGoogleAuthModalOpen,
+        openGoogleAuthModal,
+        closeGoogleAuthModal,
         cases,
+        userCases,
         sessions,
         activeSessionId,
         setActiveSessionId,
@@ -270,6 +438,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currencyScanResult,
         isCurrencyScanning,
         runCurrencyScan,
+        evidenceFiles,
+        addEvidenceFile,
+        isHashUnlocked,
+        unlockHashWithPassword,
         kpis
       }}
     >

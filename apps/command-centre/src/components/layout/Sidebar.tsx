@@ -16,7 +16,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
     { id: 'graph', label: 'Fraud Graph Explorer', icon: Network },
     { id: 'currency', label: 'Counterfeit Scanner', icon: DollarSign },
     { id: 'reports', label: 'Citizen Inbox & Cases', icon: FileText },
-    { id: 'evidence', label: 'Sec 65B Evidence Vault', icon: ShieldCheck },
+    { id: 'evidence', label: 'Evidence Package Vault', icon: ShieldCheck },
     { id: 'agents', label: '12-Agent Mesh Engine', icon: Cpu },
   ];
 

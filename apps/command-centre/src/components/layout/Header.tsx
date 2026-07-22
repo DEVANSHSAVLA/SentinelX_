@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Bell, Moon, Sun, Search, Plus, AlertCircle, CheckCircle, Info } from 'lucide-react';
+import { Shield, Bell, Moon, Sun, Search, Plus, AlertCircle, CheckCircle, Info, UserCheck, ShieldAlert } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useNotification } from '../../context/NotificationContext';
 import { useData } from '../../context/DataContext';
@@ -11,7 +11,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
   const { theme, toggleTheme } = useTheme();
   const { toasts, removeToast } = useNotification();
-  const { openRegisterCaseModal } = useData();
+  const { openRegisterCaseModal, currentUser, openGoogleAuthModal } = useData();
 
   return (
     <header className="h-16 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-30">
@@ -22,7 +22,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
         <div>
           <div className="flex items-center space-x-2">
             <span className="font-bold text-lg text-slate-100 tracking-tight">SentinelX</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">V7 Ultimate</span>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">V7 Enterprise</span>
           </div>
           <p className="text-xs text-slate-400">National Public Safety AI Command Platform</p>
         </div>
@@ -65,15 +65,35 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
           </button>
         </div>
 
-        <div className="flex items-center space-x-2 pl-3 border-l border-slate-800">
-          <div className="w-8 h-8 rounded-lg bg-indigo-950 border border-indigo-700/50 flex items-center justify-center text-xs font-bold text-indigo-300">
-            CBI
+        {/* GOOGLE AUTH / USER PROFILE SWITCHER BUTTON */}
+        <button
+          onClick={openGoogleAuthModal}
+          className="flex items-center space-x-2.5 pl-3 border-l border-slate-800 cursor-pointer hover:opacity-90 transition-opacity"
+          title="Click to Switch User Role / Sign In With Google"
+        >
+          <div className="relative">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white overflow-hidden border ${currentUser.role === 'ADMIN' ? 'border-indigo-500 bg-indigo-950' : 'border-teal-500 bg-teal-950'}`}>
+              {currentUser.avatar ? (
+                <img src={currentUser.avatar} alt="avatar" className="w-full h-full object-cover" />
+              ) : currentUser.role === 'ADMIN' ? (
+                <ShieldAlert className="w-4 h-4 text-indigo-300" />
+              ) : (
+                <UserCheck className="w-4 h-4 text-teal-300" />
+              )}
+            </div>
+            <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-slate-900 ${currentUser.role === 'ADMIN' ? 'bg-indigo-500' : 'bg-teal-500'}`} />
           </div>
+
           <div className="hidden md:block text-left">
-            <p className="text-xs font-semibold text-slate-200">Insp. R. Sharma</p>
-            <p className="text-[10px] text-slate-400">Cyber Crime Cell</p>
+            <div className="flex items-center space-x-1.5">
+              <p className="text-xs font-bold text-slate-200 leading-tight">{currentUser.name}</p>
+              <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold ${currentUser.role === 'ADMIN' ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30' : 'bg-teal-500/20 text-teal-400 border border-teal-500/30'}`}>
+                {currentUser.role}
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-400 font-mono truncate max-w-[150px]">{currentUser.email}</p>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* DYNAMIC TOAST MESSAGES OVERLAY */}

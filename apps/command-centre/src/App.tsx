@@ -6,6 +6,7 @@ import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { CommandPalette } from './components/layout/CommandPalette';
 import { RegisterCaseModal } from './components/modals/RegisterCaseModal';
+import { GoogleAuthModal } from './components/modals/GoogleAuthModal';
 import { DashboardOverview } from './features/dashboard/DashboardOverview';
 import { GeospatialMap } from './features/map/GeospatialMap';
 import { CurrencyScanner } from './features/currency/CurrencyScanner';
@@ -81,8 +82,9 @@ const CommandCentreContent: React.FC = () => {
         onTriggerSimulator={() => setActiveTab('triage')}
       />
 
-      {/* Global Register Case Modal */}
+      {/* Global Modals */}
       <RegisterCaseModal />
+      <GoogleAuthModal />
     </div>
   );
 };
