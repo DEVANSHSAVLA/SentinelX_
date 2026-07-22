@@ -91,10 +91,9 @@ app.use((req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   next();
 });
 
-// Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per window
+  max: 100000, // High capacity budget for real-time 1s multi-app sync polling
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again later.' },
