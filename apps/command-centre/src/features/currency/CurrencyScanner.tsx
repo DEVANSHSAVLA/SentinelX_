@@ -6,11 +6,11 @@ export const CurrencyScanner: React.FC = () => {
   const [scanning, setScanning] = useState(false);
   const [scanStage, setScanStage] = useState<string>('');
   const [scanResult, setScanResult] = useState<any | null>(null);
-  const [uploadedFileName, setUploadedFileName] = useState<string>('sample_note_500.jpg');
+  const [uploadedFileName, setUploadedFileName] = useState<string>('official_rbi_500_note.jpg');
 
-  // Custom uploaded image or preset sample note
+  // Official Mahatma Gandhi Series ₹500 Note Image
   const [noteImageUrl, setNoteImageUrl] = useState<string>(
-    'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&auto=format&fit=crop&q=80'
+    'https://upload.wikimedia.org/wikipedia/commons/f/f6/India_500_INR%2C_MG_series%2C_2016%2C_obverse.jpg'
   );
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -45,14 +45,14 @@ export const CurrencyScanner: React.FC = () => {
   const handleSampleSelect = (type: 'GENUINE' | 'COUNTERFEIT') => {
     if (type === 'GENUINE') {
       setClaimedDenomination(500);
-      setUploadedFileName('sample_genuine_500_note.jpg');
-      setNoteImageUrl('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&auto=format&fit=crop&q=80');
-      runComputerVisionScan('GENUINE', 500, 'sample_genuine_500_note.jpg');
+      setUploadedFileName('official_rbi_500_note.jpg');
+      setNoteImageUrl('https://upload.wikimedia.org/wikipedia/commons/f/f6/India_500_INR%2C_MG_series%2C_2016%2C_obverse.jpg');
+      runComputerVisionScan('GENUINE', 500, 'official_rbi_500_note.jpg');
     } else {
       setClaimedDenomination(500);
-      setUploadedFileName('sample_counterfeit_500_note.jpg');
+      setUploadedFileName('counterfeit_500_note_watermark.jpg');
       setNoteImageUrl('https://images.unsplash.com/photo-1580519542036-c47de6196ba5?w=800&auto=format&fit=crop&q=80');
-      runComputerVisionScan('COUNTERFEIT', 500, 'sample_counterfeit_500_note.jpg');
+      runComputerVisionScan('COUNTERFEIT', 500, 'counterfeit_500_note_watermark.jpg');
     }
   };
 
@@ -94,8 +94,9 @@ export const CurrencyScanner: React.FC = () => {
         fLower.includes('picture') ||
         fLower.includes('img') ||
         fLower.includes('doc') ||
-        imgLower.includes('photo-1511707171634') || // Phone/desk unsplash photo
-        (!fLower.includes('note') && !fLower.includes('500') && !fLower.includes('currency') && !fLower.includes('rs') && !fLower.includes('inr'))
+        imgLower.includes('photo-1511707171634') ||
+        imgLower.includes('photo-1554224155-8d04cb21cd6c') || // Old phone unsplash image
+        (!fLower.includes('note') && !fLower.includes('500') && !fLower.includes('currency') && !fLower.includes('rs') && !fLower.includes('inr') && !fLower.includes('official') && !fLower.includes('rbi'))
       );
 
       if (isNonCurrency) {
