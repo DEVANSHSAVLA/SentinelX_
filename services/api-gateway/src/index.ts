@@ -318,6 +318,38 @@ app.get('/health', (req, res) => {
   return res.json({ status: 'UP', service: 'sentinelx-api-gateway' });
 });
 
+// --------------------------------------------------------
+// CROSS-ORIGIN STATE SYNC (In-Memory Shared State Store)
+// Enables real-time sync of hash unlock, evidence files,
+// cases, and user profile across Web, Desktop, and Mobile
+// apps running on different localhost ports.
+// --------------------------------------------------------
+
+const sharedState: Record<string, any> = {
+  hash_unlocked: false,
+  evidence_files: null,
+  cases: null,
+  current_user: null,
+  _version: 0
+};
+
+// GET shared state (polled by all apps every 2s)
+app.get('/api/v1/sync/state', (req, res) => {
+  return res.json(sharedState);
+});
+
+// PUT update a specific key in shared state
+app.put('/api/v1/sync/state', (req: express.Request, res: Response) => {
+  const { key, value } = req.body;
+  if (!key || !(key in sharedState) || key === '_version') {
+    return res.status(400).json({ error: 'Invalid sync key' });
+  }
+  sharedState[key] = value;
+  sharedState._version = (sharedState._version as number) + 1;
+  logger.info(`Cross-origin sync updated: ${key} (v${sharedState._version})`);
+  return res.json({ ok: true, version: sharedState._version });
+});
+
 // Dynamic Port Binding Listener
 const startServer = (portToTry: number) => {
   const srv = app.listen(portToTry, () => {

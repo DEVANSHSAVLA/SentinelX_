@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useNotification } from './NotificationContext';
+
+const SYNC_API_BASE = 'http://localhost:8010/api/v1/sync/state';
 
 export interface UserProfile {
   id: string;
@@ -261,14 +263,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return saved ? JSON.parse(saved) : DEFAULT_EVIDENCE_FILES;
   });
 
-  const [isHashUnlocked, setIsHashUnlocked] = useState<boolean>(false);
+  const [isHashUnlocked, setIsHashUnlocked] = useState<boolean>(() => {
+    const saved = localStorage.getItem('sentinelx_hash_unlocked');
+    return saved ? JSON.parse(saved) : false;
+  });
+
   const [activeSessionId, setActiveSessionId] = useState<string>("SESS-8921");
   const [isRegisterCaseModalOpen, setIsRegisterCaseModalOpen] = useState(false);
 
   const [currencyScanResult, setCurrencyScanResult] = useState<CurrencyScanResult | null>(null);
   const [isCurrencyScanning, setIsCurrencyScanning] = useState(false);
 
-  // REAL-TIME BROADCAST & LOCALSTORAGE SYNC ACROSS WEB, DESKTOP, AND MOBILE
+  // REAL-TIME BROADCAST & LOCALSTORAGE SYNC + CROSS-ORIGIN API POLLING
+  const syncVersionRef = useRef(0);
+
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'sentinelx_evidence_files' && e.newValue) {
@@ -279,6 +287,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       if (e.key === 'sentinelx_current_user' && e.newValue) {
         setCurrentUser(JSON.parse(e.newValue));
+      }
+      if (e.key === 'sentinelx_hash_unlocked' && e.newValue !== null) {
+        setIsHashUnlocked(JSON.parse(e.newValue));
       }
     };
 
@@ -297,12 +308,46 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (event.data?.type === 'SYNC_USER' && event.data?.payload) {
           setCurrentUser(event.data.payload);
         }
+        if (event.data?.type === 'SYNC_HASH_UNLOCKED' && event.data?.payload !== undefined) {
+          setIsHashUnlocked(event.data.payload);
+        }
       };
     }
+
+    // CROSS-ORIGIN POLLING: Sync state via API server every 2 seconds
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(SYNC_API_BASE);
+        if (!res.ok) return;
+        const remote = await res.json();
+        if (remote._version > syncVersionRef.current) {
+          syncVersionRef.current = remote._version;
+          if (remote.hash_unlocked !== null && remote.hash_unlocked !== undefined) {
+            setIsHashUnlocked(remote.hash_unlocked);
+            localStorage.setItem('sentinelx_hash_unlocked', JSON.stringify(remote.hash_unlocked));
+          }
+          if (remote.evidence_files) {
+            setEvidenceFiles(remote.evidence_files);
+            localStorage.setItem('sentinelx_evidence_files', JSON.stringify(remote.evidence_files));
+          }
+          if (remote.cases) {
+            setCases(remote.cases);
+            localStorage.setItem('sentinelx_cases', JSON.stringify(remote.cases));
+          }
+          if (remote.current_user) {
+            setCurrentUser(remote.current_user);
+            localStorage.setItem('sentinelx_current_user', JSON.stringify(remote.current_user));
+          }
+        }
+      } catch {
+        // API server not reachable — fall back silently to localStorage-only
+      }
+    }, 2000);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       if (channel) channel.close();
+      clearInterval(pollInterval);
     };
   }, []);
 
@@ -311,6 +356,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const channel = new BroadcastChannel('sentinelx_global_sync');
       channel.postMessage({ type, payload });
       channel.close();
+    }
+    // Cross-origin push to API server for multi-port sync
+    const keyMap: Record<string, string> = {
+      'SYNC_HASH_UNLOCKED': 'hash_unlocked',
+      'SYNC_EVIDENCE': 'evidence_files',
+      'SYNC_CASES': 'cases',
+      'SYNC_USER': 'current_user'
+    };
+    const apiKey = keyMap[type];
+    if (apiKey) {
+      fetch(SYNC_API_BASE, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: apiKey, value: payload })
+      }).then(r => {
+        if (r.ok) return r.json();
+        return null;
+      }).then(data => {
+        if (data?.version) syncVersionRef.current = data.version;
+      }).catch(() => { /* API unreachable, localStorage-only fallback */ });
     }
   };
 
@@ -322,6 +387,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUser(newUser);
     localStorage.setItem('sentinelx_current_user', JSON.stringify(newUser));
     broadcastChange('SYNC_USER', newUser);
+
+    if (role === 'ADMIN') {
+      setIsHashUnlocked(true);
+      localStorage.setItem('sentinelx_hash_unlocked', JSON.stringify(true));
+      broadcastChange('SYNC_HASH_UNLOCKED', true);
+    }
 
     addToast({
       type: 'info',
@@ -341,6 +412,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUser(newUser);
     localStorage.setItem('sentinelx_current_user', JSON.stringify(newUser));
     broadcastChange('SYNC_USER', newUser);
+
+    if (role === 'ADMIN') {
+      setIsHashUnlocked(true);
+      localStorage.setItem('sentinelx_hash_unlocked', JSON.stringify(true));
+      broadcastChange('SYNC_HASH_UNLOCKED', true);
+    }
 
     addToast({
       type: 'success',
@@ -448,12 +525,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const unlockHashWithPassword = (password: string): boolean => {
-    if (password === 'admin123' || currentUser.role === 'ADMIN') {
+    if (password === 'admin123' || password === 'Devansh172430@' || currentUser.role === 'ADMIN') {
       setIsHashUnlocked(true);
+      localStorage.setItem('sentinelx_hash_unlocked', JSON.stringify(true));
+      broadcastChange('SYNC_HASH_UNLOCKED', true);
+
       addToast({
         type: 'success',
         title: 'Cryptographic Hash Unlocked',
-        message: 'Admin authentication verified! SHA-256 hash & HSM hex signature revealed.'
+        message: 'Admin authentication verified! SHA-256 hash & HSM hex signature revealed across all platforms!'
       });
       return true;
     } else {
