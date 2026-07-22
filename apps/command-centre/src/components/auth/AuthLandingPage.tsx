@@ -6,8 +6,8 @@ export const AuthLandingPage: React.FC = () => {
   const { loginWithCredentials, openGoogleAuthModal } = useData();
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
 
-  const [email, setEmail] = useState('admin@sentinelx.gov.in');
-  const [password, setPassword] = useState('Devansh172430@');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState<'ADMIN' | 'CITIZEN'>('ADMIN');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -155,8 +155,6 @@ export const AuthLandingPage: React.FC = () => {
                     type="button"
                     onClick={() => {
                       setRole('ADMIN');
-                      setEmail('admin@sentinelx.gov.in');
-                      setPassword('Devansh172430@');
                     }}
                     className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                       role === 'ADMIN'
@@ -166,17 +164,15 @@ export const AuthLandingPage: React.FC = () => {
                   >
                     <div className="flex items-center space-x-1.5">
                       <KeyRound className="w-3.5 h-3.5 text-indigo-400" />
-                      <span className="text-xs">Senior Officer</span>
+                      <span className="text-xs">Senior Officer Access</span>
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-0.5 font-mono">Insp. R. Sharma</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 font-mono">Pre-authorized Clearance</p>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => {
                       setRole('CITIZEN');
-                      setEmail('sunita.patel@gmail.com');
-                      setPassword('citizen123');
                     }}
                     className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                       role === 'CITIZEN'
@@ -186,23 +182,23 @@ export const AuthLandingPage: React.FC = () => {
                   >
                     <div className="flex items-center space-x-1.5">
                       <UserCheck className="w-3.5 h-3.5 text-teal-400" />
-                      <span className="text-xs">Citizen Public</span>
+                      <span className="text-xs">Citizen Public Access</span>
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-0.5 font-mono">Sunita Patel</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5 font-mono">Public Shield Portal</p>
                   </button>
                 </div>
               </div>
 
               {/* EMAIL */}
               <div>
-                <label className="text-slate-400 font-semibold block mb-1">Official Email / ID</label>
+                <label className="text-slate-400 font-semibold block mb-1">Email Address / User ID</label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-750 text-white rounded-xl p-3 text-xs outline-none focus:border-indigo-500 transition-colors font-mono"
-                  placeholder="name@sentinelx.gov.in"
+                  placeholder="user@domain.com"
                 />
               </div>
 
@@ -210,9 +206,6 @@ export const AuthLandingPage: React.FC = () => {
               <div>
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-slate-400 font-semibold">Password</label>
-                  {role === 'ADMIN' && (
-                    <span className="text-[10px] text-amber-400 font-mono">Pass: Devansh172430@</span>
-                  )}
                 </div>
                 <input
                   type="password"
