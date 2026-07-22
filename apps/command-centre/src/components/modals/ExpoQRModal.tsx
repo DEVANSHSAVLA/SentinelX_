@@ -14,9 +14,10 @@ export const ExpoQRModal: React.FC<ExpoQRModalProps> = ({ isOpen, onClose }) => 
 
   // Machine local network IPv4 address (accessible over Wi-Fi network)
   const lanIp = "10.177.200.94";
+  const nipDomain = "10-177-200-94.nip.io";
   
   const targetUrls = {
-    wifi: `http://${lanIp}:8082`,
+    wifi: `http://${nipDomain}:8082`,
     expo: `exp://${lanIp}:8081`,
     localhost: "http://localhost:8082"
   };
